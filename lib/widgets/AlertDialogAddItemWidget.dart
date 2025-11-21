@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
-class Alertdialogadditemwidget extends StatelessWidget {
+class Alertdialogadditemwidget extends StatefulWidget {
   const Alertdialogadditemwidget({
     super.key,
     required this.nameController,
@@ -11,11 +11,11 @@ class Alertdialogadditemwidget extends StatelessWidget {
     required this.invEurController,
     required this.onCancel,
     required this.onAdd,
-    required this.isLoading,
+    required this.isLoadingGeneric,
     required this.popularTickers,
-    required this.stfSetState,
     required this.onTickerSelect,
   });
+
   final TextEditingController nameController;
   final TextEditingController categoryController;
   final TextEditingController sharePrizeController;
@@ -23,21 +23,23 @@ class Alertdialogadditemwidget extends StatelessWidget {
   final TextEditingController invEurController;
   final VoidCallback onCancel;
   final Future<void> Function() onAdd;
-  final bool isLoading;
+  final bool isLoadingGeneric;
   final List<String> popularTickers;
-  final StateSetter stfSetState;
   final Future<void> Function(String) onTickerSelect;
 
+  @override
+  State<Alertdialogadditemwidget> createState() =>
+      _AlertdialogadditemwidgetState();
+}
+
+class _AlertdialogadditemwidgetState extends State<Alertdialogadditemwidget> {
+  bool _isFetchingTickerData = false;
+
   String getCategory(String symbol) {
-    if (symbol == 'BTCUSD') {
-      return 'Crypto';
-    }
-    if (symbol == 'EURUSD') {
-      return 'Forex';
-    }
+    if (symbol == 'BTCUSD') return 'Crypto';
+    if (symbol == 'EURUSD') return 'Forex';
     return 'Stock';
   }
-  // ---------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -85,22 +87,27 @@ class Alertdialogadditemwidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               DropdownSearch<String>(
-                items: popularTickers,
-
-                selectedItem: nameController.text.isEmpty
+                items: widget.popularTickers,
+                selectedItem: widget.nameController.text.isEmpty
                     ? null
-                    : nameController.text,
+                    : widget.nameController.text,
 
-                onChanged: (String? newValue) {
+                onChanged: (String? newValue) async {
                   if (newValue != null) {
-                    nameController.text = newValue;
+                    widget.nameController.text = newValue;
+                    widget.categoryController.text = getCategory(newValue);
 
-                    String newCategory = getCategory(newValue);
-                    categoryController.text = newCategory;
+                    setState(() {
+                      _isFetchingTickerData = true;
+                    });
 
-                    onTickerSelect(newValue);
+                    await widget.onTickerSelect(newValue);
 
-                    stfSetState(() {});
+                    if (mounted) {
+                      setState(() {
+                        _isFetchingTickerData = false;
+                      });
+                    }
                   }
                 },
 
@@ -124,40 +131,68 @@ class Alertdialogadditemwidget extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 dropdownDecoratorProps: DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     labelText: 'Stock Ticker Symbol (e.g., AAPL)',
+                    suffixIcon: _isFetchingTickerData
+                        ? const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.green,
+                              ),
+                            ),
+                          )
+                        : null,
                   ).applyDefaults(inputDecorationTheme),
                 ),
+                enabled: !_isFetchingTickerData && !widget.isLoadingGeneric,
               ),
 
               const SizedBox(height: 12),
-              TextFormField(
-                controller: categoryController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Category'),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: sharePrizeController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Share Price'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: stocksController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Stocks Quantity'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: invEurController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Invested (EUR)'),
-                keyboardType: TextInputType.number,
+              Opacity(
+                opacity: _isFetchingTickerData ? 0.5 : 1.0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: widget.categoryController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: 'Category'),
+                      readOnly: true,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: widget.sharePrizeController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Share Price',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: widget.stocksController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Stocks Quantity',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: widget.invEurController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Invested (EUR)',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -165,26 +200,34 @@ class Alertdialogadditemwidget extends StatelessWidget {
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: (isLoading) ? null : onCancel,
+          onPressed: (widget.isLoadingGeneric || _isFetchingTickerData)
+              ? null
+              : widget.onCancel,
           child: Text(
             'Cancel',
             style: TextStyle(
-              color: (isLoading) ? Colors.grey.shade700 : Colors.white70,
+              color: (widget.isLoadingGeneric || _isFetchingTickerData)
+                  ? Colors.grey.shade700
+                  : Colors.white70,
               fontSize: 16.0,
             ),
           ),
         ),
         ElevatedButton(
-          onPressed: (isLoading) ? null : onAdd,
+          onPressed: (widget.isLoadingGeneric || _isFetchingTickerData)
+              ? null
+              : widget.onAdd,
           style: ElevatedButton.styleFrom(
-            backgroundColor: (isLoading) ? Colors.grey : Colors.green.shade700,
+            backgroundColor: (widget.isLoadingGeneric)
+                ? Colors.grey
+                : Colors.green.shade700,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           ),
-          child: (isLoading)
+          child: (widget.isLoadingGeneric)
               ? const SizedBox(
                   height: 20,
                   width: 20,
