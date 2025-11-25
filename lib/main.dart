@@ -1,12 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/views/HomeView.dart';
 import 'package:investment_tracking/widgets/AlertDialogAddItemWidget.dart';
 import 'package:investment_tracking/widgets/HeaderWidget.dart';
-import 'package:investment_tracking/widgets/Item.dart';
+import 'package:investment_tracking/models/Item.dart';
 import 'package:investment_tracking/widgets/ItemFieldWidget.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => Invviewmodel(),
+      child: MaterialApp(
+        title: "Investment App",
+        theme: ThemeData(primarySwatch: Colors.green),
+        initialRoute: Homeview.routeName,
+        routes: {Homeview.routeName: (_) => Homeview()},
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -54,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _showAddItemDialog(BuildContext context) {
+  Future<void> _showAddItemDialog(BuildContext context) async {
     _clearTextControllers();
 
     showDialog(
@@ -231,3 +265,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+*/

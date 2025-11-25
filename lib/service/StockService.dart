@@ -1,6 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-
+/*
 class StockService {
   final String _apiKey = 'ROG6THSVC2RJHD1D';
 
@@ -31,3 +30,4 @@ class StockService {
     }
   }
 }
+*/
