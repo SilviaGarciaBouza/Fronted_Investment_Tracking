@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/views/AddItem.dart';
 import 'package:investment_tracking/views/HomeView.dart';
-import 'package:investment_tracking/widgets/AlertDialogAddItemWidget.dart';
-import 'package:investment_tracking/widgets/HeaderWidget.dart';
-import 'package:investment_tracking/models/Item.dart';
-import 'package:investment_tracking/widgets/ItemFieldWidget.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -21,7 +18,10 @@ class MyApp extends StatelessWidget {
         title: "Investment App",
         theme: ThemeData(primarySwatch: Colors.green),
         initialRoute: Homeview.routeName,
-        routes: {Homeview.routeName: (_) => Homeview()},
+        routes: {
+          Homeview.routeName: (_) => Homeview(),
+          Additem.routeName: (_) => Additem()
+          },
       ),
     );
   }

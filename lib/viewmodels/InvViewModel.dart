@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/models/Item.dart';
-import 'package:investment_tracking/models/invModel.dart';
+
+import '../models/Item.dart';
+import '../models/invModel.dart';
 
 class Invviewmodel extends ChangeNotifier {
   InvModel invModel = InvModel();
