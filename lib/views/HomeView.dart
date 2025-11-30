@@ -30,7 +30,11 @@ class _Homeview extends State<Homeview> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancelar'),
+              child: const Text(
+                'Cancelar',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -38,6 +42,8 @@ class _Homeview extends State<Homeview> {
             TextButton(
               child: const Text(
                 'Eliminar',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () {
@@ -62,7 +68,12 @@ class _Homeview extends State<Homeview> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Center(
-          child: Text("My investment", style: TextStyle(color: Colors.green)),
+          child: Text(
+            "My investment",
+            style: TextStyle(color: Colors.green),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
       body: Padding(
@@ -71,16 +82,76 @@ class _Homeview extends State<Homeview> {
           children: [
             Row(
               children: [
-                const Expanded(child: Text("Id")),
-                const Expanded(child: Text("Name")),
-                const Expanded(child: Text("Category")),
-                const Expanded(child: Text("Stocks")),
-                const Expanded(child: Text("%")),
-                const Expanded(child: Text("Share prize")),
-                const Expanded(child: Text("inv(€)")),
-                const Expanded(child: Text("Value(€)")),
-                const Expanded(child: Text("nRpL")),
-                const Expanded(child: Text("nRpL %")),
+                const Expanded(
+                  child: Text(
+                    "Id",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "Name",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "Category",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "Stocks",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "%",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "Share prize",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "inv(€)",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "Value(€)",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "nRpL",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Expanded(
+                  child: Text(
+                    "nRpL %",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 40, child: Text('')),
               ],
             ),
@@ -97,34 +168,52 @@ class _Homeview extends State<Homeview> {
                           Expanded(child: Text(element.name)),
                           Expanded(child: Text(element.category)),
                           Expanded(
-                            child: Text(element.stocks.toStringAsFixed(2)),
+                            child: Text(
+                              element.stocks.toStringAsFixed(2),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           Expanded(
                             child: Text(
                               '${element.currentPercentaje.toStringAsFixed(2)}%',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Expanded(
                             child: Text(
                               '${element.sharePrize.toStringAsFixed(2)}€',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Expanded(
                             child: Text(
                               '${element.invEur.toStringAsFixed(2)}€',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Expanded(
                             child: Text(
                               '${element.valueEur.toStringAsFixed(2)}€',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Expanded(
-                            child: Text('${element.nRpL.toStringAsFixed(2)}€'),
+                            child: Text(
+                              '${element.nRpL.toStringAsFixed(2)}€',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           Expanded(
                             child: Text(
                               '${element.nRPlPercentaje.toStringAsFixed(2)}%',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           SizedBox(
