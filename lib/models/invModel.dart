@@ -1,6 +1,5 @@
 import 'package:investment_tracking/models/Item.dart';
 
-
 class InvModel {
   List<Item> itemList = [];
   void addItem(Item item) {
@@ -8,6 +7,6 @@ class InvModel {
   }
 
   void removeItem(String name) {
-    itemList.remove((e) => e.name == name);
+    itemList.removeWhere((e) => e.name == name);
   }
 }
