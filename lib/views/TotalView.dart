@@ -15,7 +15,7 @@ class TotalView extends StatelessWidget {
     const Color accentGreen = Colors.lightGreenAccent;
     const Color textColor = Colors.white;
 
-    Color _getNplColor(double nRPlPercentaje) {
+    Color getNplColor(double nRPlPercentaje) {
       if (nRPlPercentaje > 0) {
         return accentGreen;
       } else if (nRPlPercentaje < 0) {
@@ -25,7 +25,7 @@ class TotalView extends StatelessWidget {
       }
     }
 
-    Color totalPnLColor = _getNplColor(invViewmodel.totalPnL);
+    Color totalPnLColor = getNplColor(invViewmodel.totalPnL);
 
     return Scaffold(
       backgroundColor: primaryDark,

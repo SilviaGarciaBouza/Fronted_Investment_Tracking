@@ -76,7 +76,7 @@ class _AddItem extends State<Additem> {
   Widget build(BuildContext context) {
     final invViewModel = Provider.of<Invviewmodel>(context, listen: false);
 
-    InputDecoration _inputDecoration(String label) {
+    InputDecoration inputDecoration(String label) {
       return InputDecoration(
         border: OutlineInputBorder(
           borderSide: BorderSide(color: _fieldBorderColor),
@@ -113,13 +113,11 @@ class _AddItem extends State<Additem> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: DropdownButtonFormField<String>(
-                decoration: _inputDecoration(
-                  'Asset Symbol (Stock, Crypto, FX)',
-                ),
+                decoration: inputDecoration('Asset Symbol (Stock, Crypto, FX)'),
                 dropdownColor: _fieldFillColor,
                 style: TextStyle(color: _textColor),
                 icon: Icon(Icons.arrow_drop_down, color: _accentGreen),
-                value: selectedSymbol,
+                initialValue: selectedSymbol,
                 items: availableSymbols.map((String symbol) {
                   return DropdownMenuItem<String>(
                     value: symbol,
@@ -147,7 +145,7 @@ class _AddItem extends State<Additem> {
                 controller: categoryController,
                 readOnly: true,
                 style: TextStyle(color: _textColor),
-                decoration: _inputDecoration(
+                decoration: inputDecoration(
                   'Category (Autofilled)',
                 ).copyWith(labelStyle: TextStyle(color: _fieldBorderColor)),
               ),
@@ -159,7 +157,7 @@ class _AddItem extends State<Additem> {
                 controller: quantityController,
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: _textColor),
-                decoration: _inputDecoration('Quantity (Shares, Coins, Units)'),
+                decoration: inputDecoration('Quantity (Shares, Coins, Units)'),
               ),
             ),
 
@@ -169,7 +167,7 @@ class _AddItem extends State<Additem> {
                 controller: purchasePriceController,
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: _textColor),
-                decoration: _inputDecoration(
+                decoration: inputDecoration(
                   'Purchase Price (€ per share/unit)',
                 ),
               ),

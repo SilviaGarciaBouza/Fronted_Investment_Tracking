@@ -51,4 +51,41 @@ class Item {
       transactions: transactions ?? this.transactions,
     );
   }
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    var transactionsList = json['transactions'] as List;
+    List<Transaction> transactions = transactionsList
+        .map((i) => Transaction.fromJson(i as Map<String, dynamic>))
+        .toList();
+
+    return Item(
+      category: json['category'] as String,
+      name: json['name'] as String,
+      currentPercentaje: (json['currentPercentaje'] as num).toDouble(),
+      idItem: (json['idItem'] as num).toDouble(),
+      sharePrize: (json['sharePrize'] as num).toDouble(),
+      stocks: (json['stocks'] as num).toDouble(),
+      invEur: (json['invEur'] as num).toDouble(),
+      valueEur: (json['valueEur'] as num).toDouble(),
+      nRpL: (json['nRpL'] as num).toDouble(),
+      nRPlPercentaje: (json['nRPlPercentaje'] as num).toDouble(),
+      transactions: transactions,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'category': category,
+      'name': name,
+      'currentPercentaje': currentPercentaje,
+      'idItem': idItem,
+      'sharePrize': sharePrize,
+      'stocks': stocks,
+      'invEur': invEur,
+      'valueEur': valueEur,
+      'nRpL': nRpL,
+      'nRPlPercentaje': nRPlPercentaje,
+      'transactions': transactions.map((tx) => tx.toJson()).toList(),
+    };
+  }
 }
