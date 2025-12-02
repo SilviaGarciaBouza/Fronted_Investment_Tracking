@@ -6,6 +6,9 @@ import 'package:investment_tracking/models/Item.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:investment_tracking/views/AddItem.dart';
 import 'package:provider/provider.dart';
+import 'package:investment_tracking/widgets/buildSummaryRow.dart';
+import 'package:investment_tracking/views/TotalView.dart';
+import 'package:investment_tracking/views/TransactionDetailView.dart';
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
@@ -15,6 +18,21 @@ class Homeview extends StatefulWidget {
 }
 
 class _Homeview extends State<Homeview> {
+  final Color _black = Colors.black;
+  final Color _greenAccent = Colors.lightGreenAccent;
+  final Color _textColor = Colors.white;
+  final Color _headerColor = Colors.grey.shade400;
+
+  Color _getNplColor(double nRPlPercentaje) {
+    if (nRPlPercentaje > 0) {
+      return _greenAccent;
+    } else if (nRPlPercentaje < 0) {
+      return Colors.redAccent;
+    } else {
+      return _textColor.withOpacity(0.8);
+    }
+  }
+
   void _deleteItem(
     BuildContext context,
     Invviewmodel invViewmodel,
@@ -24,16 +42,22 @@ class _Homeview extends State<Homeview> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirmar eliminación'),
+          backgroundColor: _black,
+          title: Text(
+            'Confirmar eliminación',
+            style: TextStyle(color: _textColor),
+          ),
           content: Text(
             '¿Estás seguro de que quieres eliminar la inversión en $itemName?',
+            style: TextStyle(color: _textColor.withOpacity(0.8)),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text(
+              child: Text(
                 'Cancelar',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: _headerColor),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -44,7 +68,7 @@ class _Homeview extends State<Homeview> {
                 'Eliminar',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () {
                 invViewmodel.removeItem(itemName);
@@ -63,18 +87,29 @@ class _Homeview extends State<Homeview> {
   @override
   Widget build(BuildContext context) {
     final invViewmodel = Provider.of<Invviewmodel>(context);
-
+    final Color _black = Colors.black;
+    final Color _greenAccent = Colors.lightGreenAccent;
+    final Color _textColor = Colors.white;
     return Scaffold(
+      backgroundColor: _black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Center(
+        backgroundColor: _black,
+        title: Center(
           child: Text(
             "My investment",
-            style: TextStyle(color: Colors.green),
+            style: TextStyle(color: _greenAccent, fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.show_chart, color: _greenAccent),
+            onPressed: () {
+              Navigator.pushNamed(context, TotalView.routeName);
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8),
@@ -82,80 +117,90 @@ class _Homeview extends State<Homeview> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Id",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Name",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Category",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Stocks",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "%",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Share prize",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "inv(€)",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Value(€)",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "nRpL",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
                     "nRpL %",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: _headerColor, fontSize: 12),
                   ),
                 ),
                 const SizedBox(width: 40, child: Text('')),
               ],
             ),
-            const Divider(),
+            Divider(color: _headerColor.withOpacity(0.5)),
             Expanded(
               child: ListView(
                 children: [
@@ -164,14 +209,58 @@ class _Homeview extends State<Homeview> {
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Row(
                         children: [
-                          Expanded(child: Text(element.idItem.toString())),
-                          Expanded(child: Text(element.name)),
-                          Expanded(child: Text(element.category)),
+                          Expanded(
+                            child: Text(
+                              element.idItem.toStringAsFixed(0),
+                              style: TextStyle(color: _textColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                final selectedItem = invViewmodel.getItemByName(
+                                  element.name,
+                                );
+                                if (selectedItem != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          TransactionDetailView(
+                                            item: selectedItem,
+                                          ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                element.name,
+                                style: TextStyle(
+                                  color: _textColor,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: _greenAccent,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              element.category,
+                              style: TextStyle(color: _headerColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           Expanded(
                             child: Text(
                               element.stocks.toStringAsFixed(2),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textColor),
                             ),
                           ),
                           Expanded(
@@ -179,6 +268,7 @@ class _Homeview extends State<Homeview> {
                               '${element.currentPercentaje.toStringAsFixed(2)}%',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textColor),
                             ),
                           ),
                           Expanded(
@@ -186,6 +276,7 @@ class _Homeview extends State<Homeview> {
                               '${element.sharePrize.toStringAsFixed(2)}€',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textColor),
                             ),
                           ),
                           Expanded(
@@ -193,6 +284,7 @@ class _Homeview extends State<Homeview> {
                               '${element.invEur.toStringAsFixed(2)}€',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textColor),
                             ),
                           ),
                           Expanded(
@@ -200,6 +292,7 @@ class _Homeview extends State<Homeview> {
                               '${element.valueEur.toStringAsFixed(2)}€',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: _textColor),
                             ),
                           ),
                           Expanded(
@@ -207,6 +300,9 @@ class _Homeview extends State<Homeview> {
                               '${element.nRpL.toStringAsFixed(2)}€',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: _getNplColor(element.nRpL),
+                              ),
                             ),
                           ),
                           Expanded(
@@ -214,6 +310,9 @@ class _Homeview extends State<Homeview> {
                               '${element.nRPlPercentaje.toStringAsFixed(2)}%',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: _getNplColor(element.nRPlPercentaje),
+                              ),
                             ),
                           ),
                           SizedBox(
@@ -221,7 +320,7 @@ class _Homeview extends State<Homeview> {
                             child: IconButton(
                               icon: const Icon(
                                 Icons.delete,
-                                color: Colors.red,
+                                color: Colors.redAccent,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -242,7 +341,6 @@ class _Homeview extends State<Homeview> {
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push<Item>(
@@ -256,7 +354,8 @@ class _Homeview extends State<Homeview> {
             await invViewmodel.addItem(result);
           }
         },
-
+        backgroundColor: _greenAccent,
+        foregroundColor: _black,
         child: const Icon(Icons.add),
       ),
     );

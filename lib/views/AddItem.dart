@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:investment_tracking/models/Item.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:provider/provider.dart';
+import 'package:investment_tracking/models/Transaction.dart';
 
 class Additem extends StatefulWidget {
   const Additem({super.key});
@@ -12,6 +13,13 @@ class Additem extends StatefulWidget {
 }
 
 class _AddItem extends State<Additem> {
+  final Color _primaryDark = Colors.black;
+  final Color _accentGreen = Colors.lightGreenAccent;
+  final Color _textColor = Colors.white;
+  final Color _fieldBorderColor = Colors.grey.shade700;
+  final Color _fieldFillColor = Colors.grey.shade900;
+  // -----------------------------
+
   final List<String> availableSymbols = [
     // Acciones
     'AAPL', // Apple
@@ -30,6 +38,7 @@ class _AddItem extends State<Additem> {
   String? selectedSymbol;
   late TextEditingController categoryController;
   late TextEditingController quantityController;
+  late TextEditingController purchasePriceController;
 
   String _getCategoryFromSymbol(String symbol) {
     const cryptoSymbols = ['BTC', 'ETH', 'SOL'];
@@ -50,7 +59,7 @@ class _AddItem extends State<Additem> {
     super.initState();
     categoryController = TextEditingController();
     quantityController = TextEditingController();
-
+    purchasePriceController = TextEditingController();
     selectedSymbol = availableSymbols.first;
     categoryController.text = _getCategoryFromSymbol(selectedSymbol!);
   }
@@ -59,6 +68,7 @@ class _AddItem extends State<Additem> {
   void dispose() {
     categoryController.dispose();
     quantityController.dispose();
+    purchasePriceController.dispose();
     super.dispose();
   }
 
@@ -66,29 +76,54 @@ class _AddItem extends State<Additem> {
   Widget build(BuildContext context) {
     final invViewModel = Provider.of<Invviewmodel>(context, listen: false);
 
+    InputDecoration _inputDecoration(String label) {
+      return InputDecoration(
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: _fieldBorderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: _fieldBorderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: _accentGreen, width: 2),
+        ),
+        labelText: label,
+        labelStyle: TextStyle(color: _fieldBorderColor),
+        filled: true,
+        fillColor: _fieldFillColor,
+      );
+    }
+
     return Scaffold(
+      backgroundColor: _primaryDark,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Center(
-          child: Text("My investment", style: TextStyle(color: Colors.green)),
+        backgroundColor: _primaryDark,
+        foregroundColor: _accentGreen,
+        title: Center(
+          child: Text(
+            "My investment",
+            style: TextStyle(color: _accentGreen, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Asset Symbol (Stock, Crypto, FX)',
+                decoration: _inputDecoration(
+                  'Asset Symbol (Stock, Crypto, FX)',
                 ),
+                dropdownColor: _fieldFillColor,
+                style: TextStyle(color: _textColor),
+                icon: Icon(Icons.arrow_drop_down, color: _accentGreen),
                 value: selectedSymbol,
                 items: availableSymbols.map((String symbol) {
                   return DropdownMenuItem<String>(
                     value: symbol,
-                    child: Text(symbol),
+                    child: Text(symbol, style: TextStyle(color: _textColor)),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
@@ -106,16 +141,15 @@ class _AddItem extends State<Additem> {
               ),
             ),
 
-            // ------------------------------------------
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: TextField(
                 controller: categoryController,
                 readOnly: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Category (Autofilled)',
-                ),
+                style: TextStyle(color: _textColor),
+                decoration: _inputDecoration(
+                  'Category (Autofilled)',
+                ).copyWith(labelStyle: TextStyle(color: _fieldBorderColor)),
               ),
             ),
 
@@ -124,9 +158,19 @@ class _AddItem extends State<Additem> {
               child: TextField(
                 controller: quantityController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Quantity (Shares, Coins, Units)',
+                style: TextStyle(color: _textColor),
+                decoration: _inputDecoration('Quantity (Shares, Coins, Units)'),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextField(
+                controller: purchasePriceController,
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: _textColor),
+                decoration: _inputDecoration(
+                  'Purchase Price (€ per share/unit)',
                 ),
               ),
             ),
@@ -139,29 +183,45 @@ class _AddItem extends State<Additem> {
                   final name = selectedSymbol;
                   final category = categoryController.text.trim();
                   final quantityText = quantityController.text.trim();
-
+                  final purchasePriceText = purchasePriceController.text.trim();
                   if (name == null ||
                       category.isEmpty ||
-                      quantityText.isEmpty) {
+                      quantityText.isEmpty ||
+                      purchasePriceText.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text('Por favor, rellena todos los campos.'),
+                        backgroundColor: Colors.redAccent,
                       ),
                     );
                     return;
                   }
 
                   final stocks = double.tryParse(quantityText);
-                  if (stocks == null || stocks <= 0) {
+                  final purchasePrice = double.tryParse(purchasePriceText);
+                  if (stocks == null ||
+                      stocks <= 0 ||
+                      purchasePrice == null ||
+                      purchasePrice <= 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text(
-                          'Cantidad debe ser un número válido y positivo.',
+                          'Cantidad y Precio de Compra deben ser números válidos y positivos.',
                         ),
+                        backgroundColor: Colors.redAccent,
                       ),
                     );
                     return;
                   }
+
+                  final invEurInitial = stocks * purchasePrice;
+
+                  final initialTransaction = Transaction(
+                    date: DateTime.now(),
+                    stocks: stocks,
+                    purchasePrice: purchasePrice,
+                    invEur: invEurInitial,
+                  );
 
                   final newItem = Item(
                     category: category,
@@ -169,17 +229,25 @@ class _AddItem extends State<Additem> {
                     name: name,
                     idItem: invViewModel.getList().length.toDouble() + 1,
                     stocks: stocks,
-                    sharePrize: 0.0,
-                    invEur: 0.0,
-                    valueEur: 0.0,
+                    sharePrize: purchasePrice,
+                    invEur: invEurInitial,
+                    valueEur: invEurInitial,
                     nRpL: 0.0,
                     nRPlPercentaje: 0.0,
+                    transactions: [initialTransaction],
                   );
 
                   Navigator.pop(context, newItem);
                 },
-
-                child: const Text("Add"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _accentGreen,
+                  foregroundColor: _primaryDark,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text(
+                  "Add",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

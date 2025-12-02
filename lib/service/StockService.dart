@@ -4,46 +4,67 @@ import 'package:http/http.dart' as http;
 class StockService {
   final String _apiKey = 'ROG6THSVC2RJHD1D';
 
-  Future<double> getStockPrice(String symbol) async {
-    if (symbol.isEmpty) {
-      return 0.0;
+  String _getFunction(String symbol) {
+    if (symbol.contains(RegExp(r'USD|EUR|JPY|GBP'))) {
+      return 'FX_DAILY';
+    } else {
+      return 'GLOBAL_QUOTE';
     }
+  }
 
-    final url =
-        'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=$_apiKey';
+  Future<double> getStockPrice(String symbol) async {
+    if (symbol.isEmpty) return 0.0;
+
+    final function = _getFunction(symbol);
+    String url;
+
+    // A. Construir la URL según el tipo de función
+    if (function == 'FX_DAILY') {
+      // Para FX (ej. EURUSD) necesitamos separar la divisa base y la cotizada (from/to)
+      if (symbol.length != 6) return 0.0;
+      final fromCurrency = symbol.substring(0, 3);
+      final toCurrency = symbol.substring(3, 6);
+      // Usamos el endpoint de Tasa de Cambio para obtener el precio actual
+      url =
+          'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=$fromCurrency&to_currency=$toCurrency&apikey=$_apiKey';
+    } else {
+      // Para Acciones y Criptos usamos GLOBAL_QUOTE
+      url =
+          'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=$symbol&apikey=$_apiKey';
+    }
 
     try {
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        //  decodificar
         final data = json.decode(response.body);
 
-        // Acceso más seguro a los datos
-        final Map<String, dynamic>? quoteData = data['Global Quote'];
-
-        //  Comprobar que los datos existen y contienen el precio
-        if (quoteData != null && quoteData.containsKey('05. price')) {
-          final priceString = quoteData['05. price'] as String;
-
-          // Devolver el precio, o 0.0 si el parseo falla
-          return double.tryParse(priceString) ?? 0.0;
+        // B. Parsear la respuesta según la función utilizada
+        if (function == 'FX_DAILY') {
+          final Map<String, dynamic>? rateData =
+              data['Realtime Currency Exchange Rate'];
+          if (rateData != null && rateData.containsKey('5. Exchange Rate')) {
+            final priceString = rateData['5. Exchange Rate'] as String;
+            return double.tryParse(priceString) ?? 0.0;
+          }
+        } else if (function == 'GLOBAL_QUOTE') {
+          final Map<String, dynamic>? quoteData = data['Global Quote'];
+          if (quoteData != null && quoteData.containsKey('05. price')) {
+            final priceString = quoteData['05. price'] as String;
+            return double.tryParse(priceString) ?? 0.0;
+          }
         }
 
-        // Si la respuesta es 200 pero no hay datos de cotización (símbolo inválido)
-        print(
-          'Error: Stock symbol "$symbol" not found or price data missing in response.',
-        );
+        // C. Manejo de errores
+        print('Error: Data not found or price key missing for $symbol.');
         return 0.0;
       } else {
-        // Fallo de conexión o error de servidor (404, 500, etc.)
         print(
           'Failed to connect to Alpha Vantage API. Status: ${response.statusCode}',
         );
         return 0.0;
       }
     } catch (e) {
-      //  Capturar errores de red (timeout, no hay internet, etc.)
       print('Network error occurred while fetching price for $symbol: $e');
       return 0.0;
     }

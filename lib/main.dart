@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:investment_tracking/views/AddItem.dart';
 import 'package:investment_tracking/views/HomeView.dart';
+import 'package:investment_tracking/views/TotalView.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -20,8 +21,9 @@ class MyApp extends StatelessWidget {
         initialRoute: Homeview.routeName,
         routes: {
           Homeview.routeName: (_) => Homeview(),
-          Additem.routeName: (_) => Additem()
-          },
+          Additem.routeName: (_) => Additem(),
+          TotalView.routeName: (_) => const TotalView(),
+        },
       ),
     );
   }
