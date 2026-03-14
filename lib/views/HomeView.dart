@@ -1,361 +1,251 @@
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/models/Item.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
-import 'package:investment_tracking/views/AddItem.dart';
+import 'package:investment_tracking/models/item.dart';
 import 'package:provider/provider.dart';
-import 'package:investment_tracking/views/TotalView.dart';
-import 'package:investment_tracking/views/TransactionDetailView.dart';
+import '../viewmodels/InvViewModel.dart';
+import 'AddItem.dart';
+import 'total_view.dart';
+import 'TransactionDetailView.dart';
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
-  static const routeName = '/';
+  static const routeName = '/home';
+
   @override
   State<Homeview> createState() => _Homeview();
 }
 
 class _Homeview extends State<Homeview> {
+  // Configuración de colores (Sin azul)
   final Color _black = Colors.black;
   final Color _greenAccent = Colors.lightGreenAccent;
   final Color _textColor = Colors.white;
   final Color _headerColor = Colors.grey.shade400;
 
-  Color _getNplColor(double nRPlPercentaje) {
-    if (nRPlPercentaje > 0) {
-      return _greenAccent;
-    } else if (nRPlPercentaje < 0) {
-      return Colors.redAccent;
-    } else {
-      return _textColor.withOpacity(0.8);
-    }
-  }
-
-  void _deleteItem(
-    BuildContext context,
-    Invviewmodel invViewmodel,
-    String itemName,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: _black,
-          title: Text(
-            'Confirmar eliminación',
-            style: TextStyle(color: _textColor),
-          ),
-          content: Text(
-            '¿Estás seguro de que quieres eliminar la inversión en $itemName?',
-            style: TextStyle(color: _textColor.withOpacity(0.8)),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Cancelar',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: _headerColor),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                'Eliminar',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.redAccent),
-              ),
-              onPressed: () {
-                invViewmodel.removeItem(itemName);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Inversión en $itemName eliminada.')),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
+  // Lógica de colores para beneficios/pérdidas
+  Color _getNplColor(double percentage) {
+    if (percentage > 0) return _greenAccent;
+    if (percentage < 0) return Colors.redAccent;
+    return _textColor.withOpacity(0.8);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Escuchamos al ViewModel
     final invViewmodel = Provider.of<Invviewmodel>(context);
-    final Color black = Colors.black;
-    final Color greenAccent = Colors.lightGreenAccent;
-    final Color textColor = Colors.white;
+
     return Scaffold(
-      backgroundColor: black,
+      backgroundColor: _black,
       appBar: AppBar(
-        backgroundColor: black,
-        title: Center(
-          child: Text(
-            "My investment",
-            style: TextStyle(color: greenAccent, fontWeight: FontWeight.bold),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        backgroundColor: _black,
+        elevation: 0,
+        title: Text(
+          "MY INVESTMENTS",
+          style: TextStyle(
+            color: _greenAccent,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.show_chart, color: greenAccent),
-            onPressed: () {
-              Navigator.pushNamed(context, TotalView.routeName);
-            },
+            icon: Icon(Icons.show_chart, color: _greenAccent),
+            onPressed: () => Navigator.pushNamed(context, TotalView.routeName),
           ),
         ],
       ),
       body: invViewmodel.isLoading
-          ? Center(child: CircularProgressIndicator(color: greenAccent))
-          : Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Id",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Name",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Category",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Stocks",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "%",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Share prize",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "inv(€)",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Value(€)",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "nRpL",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "nRpL %",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _headerColor, fontSize: 12),
-                        ),
-                      ),
-                      const SizedBox(width: 40, child: Text('')),
-                    ],
-                  ),
-                  Divider(color: _headerColor.withOpacity(0.5)),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        for (var element in invViewmodel.getList())
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    element.idItem.toStringAsFixed(0),
-                                    style: TextStyle(color: textColor),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      final selectedItem = invViewmodel
-                                          .getItemByName(element.name);
-                                      if (selectedItem != null) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                TransactionDetailView(
-                                                  item: selectedItem,
-                                                ),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      element.name,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: greenAccent,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    element.category,
-                                    style: TextStyle(color: _headerColor),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    element.stocks.toStringAsFixed(2),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: textColor),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.currentPercentaje.toStringAsFixed(2)}%',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: textColor),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.sharePrize.toStringAsFixed(2)}€',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: textColor),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.invEur.toStringAsFixed(2)}€',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: textColor),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.valueEur.toStringAsFixed(2)}€',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: textColor),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.nRpL.toStringAsFixed(2)}€',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: _getNplColor(element.nRpL),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    '${element.nRPlPercentaje.toStringAsFixed(2)}%',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: _getNplColor(
-                                        element.nRPlPercentaje,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 40,
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.redAccent,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      _deleteItem(
-                                        context,
-                                        invViewmodel,
-                                        element.name,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
+          ? Center(child: CircularProgressIndicator(color: _greenAccent))
+          : RefreshIndicator(
+              color: _greenAccent,
+              onRefresh: () => invViewmodel.fetchItems(),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    // Cabecera de la tabla
+                    _buildHeader(),
+                    Divider(color: _headerColor.withOpacity(0.3)),
+
+                    // Lista de activos desde MariaDB
+                    Expanded(
+                      child: invViewmodel.itemList.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                              itemCount: invViewmodel.itemList.length,
+                              itemBuilder: (context, index) {
+                                final item = invViewmodel.itemList[index];
+                                return _buildItemRow(item, invViewmodel);
+                              },
                             ),
-                          ),
-                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push<Item>(
-            context,
-            MaterialPageRoute(builder: (context) => const Additem()),
-          );
-
-          if (!mounted) return;
-
-          if (result != null) {
-            await invViewmodel.addItem(result);
-          }
+          await Navigator.pushNamed(context, Additem.routeName);
+          // Al volver, refrescamos los datos por si se ha añadido algo
+          invViewmodel.fetchItems();
         },
-        backgroundColor: greenAccent,
-        foregroundColor: black,
-        child: const Icon(Icons.add),
+        backgroundColor: _greenAccent,
+        child: const Icon(Icons.add, color: Colors.black, size: 30),
+      ),
+    );
+  }
+
+  // Widget para la cabecera
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            "NAME",
+            style: TextStyle(
+              color: _headerColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            "STOCKS",
+            style: TextStyle(
+              color: _headerColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            "VALUE(€)",
+            style: TextStyle(
+              color: _headerColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            "PnL %",
+            style: TextStyle(
+              color: _headerColor,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(width: 40),
+      ],
+    );
+  }
+
+  // Widget para cada fila de la inversión
+  Widget _buildItemRow(Item element, Invviewmodel vm) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TransactionDetailView(item: element),
+                  ),
+                );
+              },
+              child: Text(
+                element.name,
+                style: TextStyle(
+                  color: _textColor,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationColor: _greenAccent,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              element.stocks.toStringAsFixed(2),
+              style: TextStyle(color: _textColor),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '${element.valueEur.toStringAsFixed(2)}€',
+              style: TextStyle(color: _textColor),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '${element.nRPlPercentaje.toStringAsFixed(2)}%',
+              style: TextStyle(
+                color: _getNplColor(element.nRPlPercentaje),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.redAccent,
+              size: 22,
+            ),
+            onPressed: () {
+              // 1. Mostramos confirmación
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: _black,
+                  title: Text(
+                    "¿Borrar ${element.name}?",
+                    style: TextStyle(color: _textColor),
+                  ),
+                  content: Text(
+                    "Esta acción no se puede deshacer.",
+                    style: TextStyle(color: _headerColor),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "CANCELAR",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // 2. Llamamos al borrado
+                        vm.deleteItem(element.id);
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        "BORRAR",
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Text(
+        "No hay inversiones. ¡Pulsa + para añadir!",
+        style: TextStyle(color: _headerColor),
       ),
     );
   }

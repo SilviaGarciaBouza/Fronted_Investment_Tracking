@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/models/Item.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:provider/provider.dart';
-import 'package:investment_tracking/models/Transaction.dart';
+import '../models/category.dart' as model;
 
+/// Vista para añadir una nueva inversion mediante seleccion de listas.
 class Additem extends StatefulWidget {
   const Additem({super.key});
   static const routeName = '/additem';
@@ -16,241 +16,230 @@ class _AddItem extends State<Additem> {
   final Color _primaryDark = Colors.black;
   final Color _accentGreen = Colors.lightGreenAccent;
   final Color _textColor = Colors.white;
-  final Color _fieldBorderColor = Colors.grey.shade700;
   final Color _fieldFillColor = Colors.grey.shade900;
-  // -----------------------------
 
-  final List<String> availableSymbols = [
-    // Acciones
-    'AAPL', // Apple
-    'GOOGL', // Alphabet
-    'TSLA', // Tesla
-    //Criptos
-    'BTC', // Bitcoin
-    'ETH', // Ethereum
-    'SOL', // Solana
-    //Divisas
-    'EURUSD', // Euro / Dólar
-    'GBPUSD', // Libra / Dólar
-    'USDJPY', // Dólar / Yen
-  ];
+  final TextEditingController quantityController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
 
-  String? selectedSymbol;
-  late TextEditingController categoryController;
-  late TextEditingController quantityController;
-  late TextEditingController purchasePriceController;
+  model.Category? selectedCategory;
+  String? selectedAssetName;
 
-  String _getCategoryFromSymbol(String symbol) {
-    const cryptoSymbols = ['BTC', 'ETH', 'SOL'];
-
-    if (symbol.length == 6 && symbol.contains(RegExp(r'[A-Z]'))) {
-      return 'Divisa';
-    }
-
-    if (cryptoSymbols.contains(symbol)) {
-      return 'Criptomoneda';
-    }
-
-    return 'Acción';
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    categoryController = TextEditingController();
-    quantityController = TextEditingController();
-    purchasePriceController = TextEditingController();
-    selectedSymbol = availableSymbols.first;
-    categoryController.text = _getCategoryFromSymbol(selectedSymbol!);
-  }
+  /// Mapa que relaciona cada categoria con sus activos disponibles.
+  final Map<String, List<String>> _assetsByCategory = {
+    'Acción': ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'NVDA'],
+    'Criptomoneda': [
+      'BTC/USD',
+      'ETH/USD',
+      'SOL/USD',
+      'ADA/USD',
+      'DOT/USD',
+      'DOGE/USD',
+    ],
+    'Divisa': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP'],
+  };
 
   @override
   void dispose() {
-    categoryController.dispose();
     quantityController.dispose();
-    purchasePriceController.dispose();
+    priceController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final invViewModel = Provider.of<Invviewmodel>(context, listen: false);
-
-    InputDecoration inputDecoration(String label) {
-      return InputDecoration(
-        border: OutlineInputBorder(
-          borderSide: BorderSide(color: _fieldBorderColor),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _fieldBorderColor),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _accentGreen, width: 2),
-        ),
-        labelText: label,
-        labelStyle: TextStyle(color: _fieldBorderColor),
-        filled: true,
-        fillColor: _fieldFillColor,
-      );
-    }
+    final invViewModel = Provider.of<Invviewmodel>(context);
 
     return Scaffold(
       backgroundColor: _primaryDark,
       appBar: AppBar(
         backgroundColor: _primaryDark,
         foregroundColor: _accentGreen,
-        title: Center(
-          child: Text(
-            "My investment",
-            style: TextStyle(color: _accentGreen, fontWeight: FontWeight.bold),
-          ),
-        ),
+        elevation: 0,
+        title: const Text("NUEVA INVERSIÓN"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: DropdownButtonFormField<String>(
-                decoration: inputDecoration('Asset Symbol (Stock, Crypto, FX)'),
-                dropdownColor: _fieldFillColor,
-                style: TextStyle(color: _textColor),
-                icon: Icon(Icons.arrow_drop_down, color: _accentGreen),
-                initialValue: selectedSymbol,
-                items: availableSymbols.map((String symbol) {
-                  return DropdownMenuItem<String>(
-                    value: symbol,
-                    child: Text(symbol, style: TextStyle(color: _textColor)),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedSymbol = newValue;
-                    if (newValue != null) {
-                      categoryController.text = _getCategoryFromSymbol(
-                        newValue,
+            // 1. Desplegable de Categoría
+            _buildLabel("1. SELECCIONA CATEGORÍA"),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<model.Category>(
+              dropdownColor: _fieldFillColor,
+              style: TextStyle(color: _textColor),
+              decoration: _inputDecoration(
+                "Categoría",
+                Icons.category_outlined,
+              ),
+              initialValue: selectedCategory,
+              items: invViewModel.categories.map((cat) {
+                return DropdownMenuItem(
+                  value: cat,
+                  child: Text(cat.name, style: TextStyle(color: _textColor)),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  selectedCategory = val;
+                  selectedAssetName =
+                      null; // Reiniciamos el activo al cambiar categoria
+                });
+              },
+            ),
+
+            const SizedBox(height: 25),
+
+            // 2. Desplegable de Activo (Dependiente)
+            _buildLabel("2. SELECCIONA ACTIVO"),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              dropdownColor: _fieldFillColor,
+              disabledHint: const Text(
+                "Elige primero una categoría",
+                style: TextStyle(color: Colors.grey),
+              ),
+              style: TextStyle(color: _textColor),
+              decoration: _inputDecoration("Activo", Icons.auto_graph),
+              initialValue: selectedAssetName,
+              // Si no hay categoria seleccionada, la lista esta vacia
+              items: selectedCategory == null
+                  ? []
+                  : (_assetsByCategory[selectedCategory!.name] ?? []).map((
+                      name,
+                    ) {
+                      return DropdownMenuItem(
+                        value: name,
+                        child: Text(name, style: TextStyle(color: _textColor)),
                       );
-                    }
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Por favor, selecciona un símbolo.' : null,
-              ),
+                    }).toList(),
+              onChanged: (val) => setState(() => selectedAssetName = val),
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: TextField(
-                controller: categoryController,
-                readOnly: true,
-                style: TextStyle(color: _textColor),
-                decoration: inputDecoration(
-                  'Category (Autofilled)',
-                ).copyWith(labelStyle: TextStyle(color: _fieldBorderColor)),
-              ),
-            ),
+            const SizedBox(height: 25),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: TextField(
-                controller: quantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: _textColor),
-                decoration: inputDecoration('Quantity (Shares, Coins, Units)'),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: TextField(
-                controller: purchasePriceController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: _textColor),
-                decoration: inputDecoration(
-                  'Purchase Price (€ per share/unit)',
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Flexible(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final name = selectedSymbol;
-                  final category = categoryController.text.trim();
-                  final quantityText = quantityController.text.trim();
-                  final purchasePriceText = purchasePriceController.text.trim();
-                  if (name == null ||
-                      category.isEmpty ||
-                      quantityText.isEmpty ||
-                      purchasePriceText.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Por favor, rellena todos los campos.'),
-                        backgroundColor: Colors.redAccent,
+            // 3. Cantidad y Precio
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("CANTIDAD"),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        quantityController,
+                        "0.00",
+                        Icons.add_chart,
                       ),
-                    );
-                    return;
-                  }
-
-                  final stocks = double.tryParse(quantityText);
-                  final purchasePrice = double.tryParse(purchasePriceText);
-                  if (stocks == null ||
-                      stocks <= 0 ||
-                      purchasePrice == null ||
-                      purchasePrice <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Cantidad y Precio de Compra deben ser números válidos y positivos.',
-                        ),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                    return;
-                  }
-
-                  final invEurInitial = stocks * purchasePrice;
-
-                  final initialTransaction = Transaction(
-                    date: DateTime.now(),
-                    stocks: stocks,
-                    purchasePrice: purchasePrice,
-                    invEur: invEurInitial,
-                  );
-
-                  final newItem = Item(
-                    category: category,
-                    currentPercentaje: 0.0,
-                    name: name,
-                    idItem: invViewModel.getList().length.toDouble() + 1,
-                    stocks: stocks,
-                    sharePrize: purchasePrice,
-                    invEur: invEurInitial,
-                    valueEur: invEurInitial,
-                    nRpL: 0.0,
-                    nRPlPercentaje: 0.0,
-                    transactions: [initialTransaction],
-                  );
-
-                  Navigator.pop(context, newItem);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accentGreen,
-                  foregroundColor: _primaryDark,
-                  minimumSize: const Size(double.infinity, 50),
+                    ],
+                  ),
                 ),
-                child: const Text(
-                  "Add",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("PRECIO COMPRA (€)"),
+                      const SizedBox(height: 8),
+                      _buildTextField(priceController, "0.00", Icons.euro),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
+
+            const SizedBox(height: 40),
+
+            // Botón Guardar
+            invViewModel.isLoading
+                ? Center(child: CircularProgressIndicator(color: _accentGreen))
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accentGreen,
+                      foregroundColor: _primaryDark,
+                      minimumSize: const Size(double.infinity, 60),
+                    ),
+                    onPressed: () async {
+                      if (selectedCategory == null ||
+                          selectedAssetName == null ||
+                          quantityController.text.isEmpty ||
+                          priceController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Completa todos los pasos"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final stocks =
+                          double.tryParse(quantityController.text) ?? 0.0;
+                      final price =
+                          double.tryParse(priceController.text) ?? 0.0;
+
+                      await invViewModel.saveNewItem(
+                        name: selectedAssetName!,
+                        stocks: stocks,
+                        price: price,
+                        categoryId: selectedCategory!.id,
+                      );
+
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "CONFIRMAR INVERSIÓN",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Estilo de las etiquetas de los campos.
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: _accentGreen,
+        fontSize: 11,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  /// Estilo de los inputs (Sin azul). [cite: 2026-02-09]
+  InputDecoration _inputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: _textColor.withOpacity(0.3)),
+      prefixIcon: Icon(icon, color: _accentGreen),
+      filled: true,
+      fillColor: _fieldFillColor,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade800),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: _accentGreen),
+      ),
+    );
+  }
+
+  /// Campo de texto para valores numericos.
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+  ) {
+    return TextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: TextStyle(color: _textColor),
+      decoration: _inputDecoration(hint, icon),
     );
   }
 }

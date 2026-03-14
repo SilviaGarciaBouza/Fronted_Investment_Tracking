@@ -1,215 +1,112 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/service/StockService.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/Item.dart';
-import '../models/invModel.dart';
-import '../models/Transaction.dart';
+import '../models/item.dart';
+import '../models/user.dart';
+import '../models/category.dart';
+import '../repositories/item_repository.dart';
+import '../repositories/auth_repository.dart';
+import '../repositories/category_repository.dart';
 
+/// Gestiona el estado de la aplicacion y la logica de negocio para la UI.
 class Invviewmodel extends ChangeNotifier {
-  InvModel invModel = InvModel();
-  final StockService _stockService = StockService();
-  bool _isLoading = true;
-  bool get isLoading => _isLoading;
+  final ItemRepository _itemRepo = ItemRepository();
+  final AuthRepository _authRepo = AuthRepository();
+  final CategoryRepository _categoryRepo = CategoryRepository();
 
-  static const String _keyPortfolio = 'portfolioList';
+  User? currentUser;
+  List<Item> itemList = [];
+  List<Category> categories = [];
+  bool isLoading = false;
 
-  Invviewmodel() {
-    loadPortfolio();
-  }
-
-  Future<void> savePortfolio() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final jsonList = invModel.itemList.map((item) => item.toJson()).toList();
-    final jsonString = json.encode(jsonList);
-
-    await prefs.setString(_keyPortfolio, jsonString);
-  }
-
-  Future<void> loadPortfolio() async {
-    _isLoading = true;
+  /// Realiza el login enviando usuario y contraseña.
+  /// Si tiene éxito, carga automáticamente los datos iniciales.
+  Future<bool> login(String username, String password) async {
+    isLoading = true;
     notifyListeners();
-
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_keyPortfolio);
-
-    if (jsonString != null) {
-      final jsonList = json.decode(jsonString) as List;
-
-      invModel.itemList = jsonList
-          .map((jsonItem) => Item.fromJson(jsonItem as Map<String, dynamic>))
-          .toList();
-
-      await _refreshAllPrices();
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> _refreshAllPrices() async {
-    final updatedList = <Item>[];
-
-    for (final item in invModel.itemList) {
-      String symbol = item.name.toUpperCase();
-
-      if (item.category == 'Criptomoneda' && !symbol.contains('USD')) {
-        symbol = '${symbol}USD';
-      }
-
-      final currentPrice = await _stockService.getStockPrice(symbol);
-
-      if (currentPrice <= 0.0) {
-        updatedList.add(item);
-        continue;
-      }
-
-      final totalStocks = item.stocks;
-      final totalInvEur = item.invEur;
-      final newCurrentValue = totalStocks * currentPrice;
-      final newPnL = newCurrentValue - totalInvEur;
-      final newPnLPercent = totalInvEur != 0.0
-          ? (newPnL / totalInvEur) * 100
-          : 0.0;
-
-      final updatedItem = item.copyWith(
-        valueEur: newCurrentValue,
-        nRpL: newPnL,
-        nRPlPercentaje: newPnLPercent,
-      );
-      updatedList.add(updatedItem);
-    }
-
-    invModel.itemList = updatedList;
-    _updatePortfolioPercentages();
-  }
-
-  List<Item> getList() {
-    return invModel.itemList;
-  }
-
-  double get totalInvestment {
-    return invModel.itemList.fold(0.0, (sum, item) => sum + item.invEur);
-  }
-
-  double get totalCurrentValue {
-    return invModel.itemList.fold(0.0, (sum, item) => sum + item.valueEur);
-  }
-
-  double get totalPnL {
-    return totalCurrentValue - totalInvestment;
-  }
-
-  double get totalPnLPercent {
-    if (totalInvestment == 0.0) return 0.0;
-    return (totalPnL / totalInvestment) * 100;
-  }
-
-  Item? getItemByName(String name) {
     try {
-      return invModel.itemList.firstWhere((e) => e.name == name);
+      // Ahora pasamos ambos parametros al repositorio corregido
+      currentUser = await _authRepo.login(username, password);
+      if (currentUser != null) {
+        await fetchCategories();
+        await fetchItems();
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Recupera la lista de categorias disponibles desde el servidor.
+  Future<void> fetchCategories() async {
+    categories = await _categoryRepo.getAllCategories();
+    notifyListeners();
+  }
+
+  /// Obtiene los activos financieros asociados al usuario actual.
+  Future<void> fetchItems() async {
+    if (currentUser == null) return;
+    try {
+      itemList = await _itemRepo.fetchUserItems(currentUser!.id);
     } catch (e) {
-      return null;
+      print("No se pudo actualizar, manteniendo datos previos.");
+    } finally {
+      notifyListeners();
     }
   }
 
-  void _updatePortfolioPercentages() {
-    final totalValue = totalCurrentValue;
-
-    if (totalValue == 0.0) return;
-
-    final updatedList = invModel.itemList.map((item) {
-      final newPercent = (item.valueEur / totalValue) * 100;
-
-      return item.copyWith(currentPercentaje: newPercent);
-    }).toList();
-
-    invModel.itemList = updatedList;
-  }
-
-  Future<void> addItem(Item newItemData) async {
-    String symbol = newItemData.name.toUpperCase();
-
-    if (symbol == 'BTC' || symbol == 'ETH' || symbol == 'SOL') {
-      symbol = '${symbol}USD';
-    }
-
-    final currentPrice = await _stockService.getStockPrice(symbol);
-
-    if (currentPrice <= 0.0) {
-      return;
-    }
-
-    final newTransaction = Transaction(
-      date: DateTime.now(),
-      stocks: newItemData.stocks,
-      purchasePrice: newItemData.sharePrize,
-      invEur: newItemData.invEur,
-    );
-
-    final existingIndex = invModel.itemList.indexWhere((e) => e.name == symbol);
-
-    Item updatedItem;
-
-    if (existingIndex != -1) {
-      final existingItem = invModel.itemList[existingIndex];
-
-      final totalInvEur = existingItem.invEur + newTransaction.invEur;
-      final totalStocks = existingItem.stocks + newTransaction.stocks;
-      final newWAC = totalInvEur / totalStocks;
-
-      final newCurrentValue = totalStocks * currentPrice;
-      final newPnL = newCurrentValue - totalInvEur;
-      final newPnLPercent = totalInvEur != 0.0
-          ? (newPnL / totalInvEur) * 100
-          : 0.0;
-
-      updatedItem = existingItem.copyWith(
-        sharePrize: newWAC,
-        stocks: totalStocks,
-        invEur: totalInvEur,
-        valueEur: newCurrentValue,
-        nRpL: newPnL,
-        nRPlPercentaje: newPnLPercent,
-        transactions: [...existingItem.transactions, newTransaction],
-      );
-
-      invModel.itemList[existingIndex] = updatedItem;
-    } else {
-      final invEurInitial = newTransaction.invEur;
-      final valueEurInitial = newTransaction.stocks * currentPrice;
-
-      updatedItem = Item(
-        category: newItemData.category,
-        name: symbol,
-        idItem: invModel.itemList.length.toDouble() + 1,
-        stocks: newTransaction.stocks,
-        sharePrize: newTransaction.purchasePrice,
-        invEur: invEurInitial,
-        valueEur: valueEurInitial,
-        nRpL: valueEurInitial - invEurInitial,
-        nRPlPercentaje: invEurInitial != 0.0
-            ? ((valueEurInitial - invEurInitial) / invEurInitial) * 100
-            : 0.0,
-        currentPercentaje: 0.0,
-        transactions: [newTransaction],
-      );
-
-      invModel.addItem(updatedItem);
-    }
-
-    _updatePortfolioPercentages();
+  /// Registra una nueva inversion y refresca la lista principal.
+  Future<void> saveNewItem({
+    required String name,
+    required double stocks,
+    required double price,
+    required int categoryId,
+  }) async {
+    if (currentUser == null) return;
+    isLoading = true;
     notifyListeners();
-    await savePortfolio();
+    final Map<String, dynamic> data = {
+      "name": name,
+      "userId": currentUser!.id,
+      "categoryId": categoryId,
+      "initialStocks": stocks,
+      "initialPrice": price,
+    };
+    if (await _itemRepo.saveItem(data)) {
+      await Future.delayed(const Duration(seconds: 1));
+      await fetchItems();
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
 
-  @override
-  Future<void> removeItem(String name) async {
-    invModel.removeItem(name);
-    _updatePortfolioPercentages();
+  /// Elimina una inversión del backend y actualiza la lista local.
+  Future<void> deleteItem(int itemId) async {
+    isLoading = true;
     notifyListeners();
-    await savePortfolio();
+
+    if (await _itemRepo.deleteItem(itemId)) {
+      // Si el backend confirmó el borrado, lo quitamos de nuestra lista en memoria
+      itemList.removeWhere((item) => item.id == itemId);
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
+
+  /// Calcula el valor actual total de la cartera: $$\sum (stocks \times price)$$
+  double get totalCurrentValue =>
+      itemList.fold(0, (sum, item) => sum + item.valueEur);
+
+  /// Calcula la inversion total realizada: $$\sum (invEur)$$
+  double get totalInvestment =>
+      itemList.fold(0, (sum, item) => sum + item.invEur);
+
+  /// Diferencia entre valor actual e inversion: $$PnL = Value - Investment$$
+  double get totalPnL => totalCurrentValue - totalInvestment;
+
+  /// Porcentaje de beneficio o perdida total.
+  double get totalPnLPercent =>
+      totalInvestment == 0 ? 0 : (totalPnL / totalInvestment) * 100;
 }
