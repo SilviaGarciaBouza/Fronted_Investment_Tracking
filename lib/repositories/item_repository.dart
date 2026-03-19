@@ -1,17 +1,24 @@
+import 'package:investment_tracking/dao/item_dao.dart';
 import 'package:investment_tracking/models/item.dart';
 import 'package:investment_tracking/service/api_service.dart';
 
 class ItemRepository {
   final ApiService _apiService = ApiService();
+  final ItemDao _itemDao = ItemDao();
 
   Future<List<Item>> fetchUserItems(int userId) async {
     try {
       final data = await _apiService.get('/items/user/$userId');
-      return (data as List).map((json) => Item.fromJson(json)).toList();
+      final List<Item> items = (data as List)
+          .map((json) => Item.fromJson(json))
+          .toList();
+
+      await _itemDao.synchronizeItems(items, userId);
+
+      return items;
     } catch (e) {
-      print("Error buscando items: $e");
-      //return [];
-      throw e;
+      print("Cargando caché offline para el usuario $userId");
+      return await _itemDao.getItemsForUser(userId);
     }
   }
 

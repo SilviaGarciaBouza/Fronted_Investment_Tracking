@@ -9,18 +9,18 @@ class AuthRepository {
   /// Retorna un objeto User si la autenticacion es exitosa o null si falla.
   Future<User?> login(String username, String password) async {
     try {
-      final data = await _apiService.post('/users/login', {
+      final response = await _apiService.post('/users/login', {
         "username": username,
         "password": password,
       });
-
-      if (data != null && data['user'] != null) {
-        return User.fromJson(data['user']);
+      print(response);
+      if (response != null) {
+        return User.fromJson(response['user']);
       }
-      return null;
     } catch (e) {
-      return null;
+      print("Error en login: $e");
     }
+    return null;
   }
 
   /// Registra un nuevo usuario en la base de datos MariaDB.

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 /// Servicio base para la comunicacion con la API REST de Spring Boot.
 class ApiService {
   final String baseUrl = "http://localhost:8080/api";
+  //final String baseUrl = "http://10.0.2.2:8080/api";
 
   /// Realiza una peticion GET para obtener datos del servidor.
   Future<dynamic> get(String endpoint) async {
@@ -20,6 +21,7 @@ class ApiService {
   Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
+
       headers: {"Content-Type": "application/json"},
       body: json.encode(data),
     );

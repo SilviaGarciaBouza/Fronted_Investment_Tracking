@@ -17,6 +17,19 @@ class _LoginViewState extends State<LoginView> {
   bool _obscureText = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final vm = Provider.of<Invviewmodel>(context, listen: false);
+      if (await vm.checkLocalSession()) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, Homeview.routeName);
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final vm = Provider.of<Invviewmodel>(context);
     const accentGreen = Colors.lightGreenAccent;
@@ -29,7 +42,6 @@ class _LoginViewState extends State<LoginView> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Mensaje de bienvenida solicitado
             const Text(
               "BIENVENIDO A TU",
               style: TextStyle(
@@ -59,7 +71,7 @@ class _LoginViewState extends State<LoginView> {
             ),
             const SizedBox(height: 20),
 
-            // Campo Contraseña (Nuevo)
+            // Campo Contraseña
             TextField(
               controller: _passController,
               obscureText: _obscureText,
@@ -93,7 +105,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     ),
                     onPressed: () async {
-                      // Ahora pasamos usuario Y contraseña al ViewModel
+                      // Pasoo usuario Y contraseña al ViewModel
                       if (await vm.login(
                         _userController.text,
                         _passController.text,

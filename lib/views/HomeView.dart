@@ -15,13 +15,11 @@ class Homeview extends StatefulWidget {
 }
 
 class _Homeview extends State<Homeview> {
-  // Configuración de colores (Sin azul)
   final Color _black = Colors.black;
   final Color _greenAccent = Colors.lightGreenAccent;
   final Color _textColor = Colors.white;
   final Color _headerColor = Colors.grey.shade400;
 
-  // Lógica de colores para beneficios/pérdidas
   Color _getNplColor(double percentage) {
     if (percentage > 0) return _greenAccent;
     if (percentage < 0) return Colors.redAccent;
@@ -54,7 +52,7 @@ class _Homeview extends State<Homeview> {
           ),
         ],
       ),
-      body: invViewmodel.isLoading
+      body: invViewmodel.isLoading && invViewmodel.itemList.isEmpty
           ? Center(child: CircularProgressIndicator(color: _greenAccent))
           : RefreshIndicator(
               color: _greenAccent,
@@ -87,7 +85,7 @@ class _Homeview extends State<Homeview> {
         onPressed: () async {
           await Navigator.pushNamed(context, Additem.routeName);
           // Al volver, refrescamos los datos por si se ha añadido algo
-          invViewmodel.fetchItems();
+          //invViewmodel.fetchItems();
         },
         backgroundColor: _greenAccent,
         child: const Icon(Icons.add, color: Colors.black, size: 30),
@@ -199,7 +197,6 @@ class _Homeview extends State<Homeview> {
               size: 22,
             ),
             onPressed: () {
-              // 1. Mostramos confirmación
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -222,7 +219,6 @@ class _Homeview extends State<Homeview> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // 2. Llamamos al borrado
                         vm.deleteItem(element.id);
                         Navigator.pop(context);
                       },

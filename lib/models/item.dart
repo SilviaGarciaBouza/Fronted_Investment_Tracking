@@ -16,14 +16,13 @@ class Item {
     required this.currentPrice,
   });
 
-  // Cálculos automáticos para la UI
-  // Inversión total (lo que pagaste en su día)
+  // Inversión total
   double get invEur => transactions.fold(0, (sum, tx) => sum + tx.invEur);
 
-  // Cantidad de activos que tienes
+  // Cantidad de activos
   double get stocks => transactions.fold(0, (sum, tx) => sum + tx.stocks);
 
-  // P&L %: Ahora es una comparativa real entre mercado e inversión
+  // P&L
   double get nRPlPercentaje =>
       invEur == 0 ? 0 : ((valueEur - invEur) / invEur) * 100;
 
@@ -41,4 +40,26 @@ class Item {
   // VALOR ACTUAL:  Stocks x Precio de Mercado Real
 
   double get valueEur => stocks * currentPrice;
+
+  factory Item.fromLocalMap(Map<String, dynamic> map) {
+    return Item(
+      id: map['id'],
+      name: map['name'],
+      category: Category(id: 0, name: map['category_name'] ?? 'Sin categoría'),
+      currentPrice: (map['current_price'] ?? 0.0).toDouble(),
+      transactions: [],
+    );
+  }
+
+  Map<String, dynamic> toLocalMap(int userId) {
+    return {
+      'id': id,
+      'user_id': userId,
+      'name': name,
+      'category_name': category.name,
+      'current_price': currentPrice,
+      'stocks': stocks,
+      'pnl_percent': nRPlPercentaje,
+    };
+  }
 }
