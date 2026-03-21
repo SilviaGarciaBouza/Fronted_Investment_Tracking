@@ -16,10 +16,12 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
       id: json['id'],
-      stocks: json['stocks'].toDouble(),
-      purchasePrice: json['purchasePrice'].toDouble(),
-      invEur: json['invEur'].toDouble(),
-      purchaseDate: DateTime.parse(json['purchaseDate']),
+      stocks: (json['stocks'] ?? 0.0).toDouble(),
+      purchasePrice: (json['purchasePrice'] ?? 0.0).toDouble(),
+      invEur: (json['invEur'] ?? 0.0).toDouble(),
+      purchaseDate: DateTime.parse(
+        json['purchaseDate'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 

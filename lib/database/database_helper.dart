@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 7,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -52,6 +52,8 @@ class DatabaseHelper {
         current_price REAL,
         stocks REAL,
         pnl_percent REAL,
+        inv_eur REAL,
+        is_synced INTEGER DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       )
     ''');
@@ -79,20 +81,19 @@ class DatabaseHelper {
 
   Future<void> saveUser(Map<String, dynamic> userData, String token) async {
     final db = await database;
-    if (db != null) {
-      await db.insert('users', {
-        'id': userData['id'],
-        'username': userData['username'],
-        'email': userData['email'],
-        'token': token,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('users', {
+      'id': userData['id'],
+      'username': userData['username'],
+      'email': userData['email'],
+      'token': token,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      print("Usuario guardado en SQLite correctamente.");
-    }
+    print("Usuario guardado en SQLite correctamente.");
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
+    if (oldVersion < newVersion) {
+      await db.execute('DROP TABLE IF EXISTS categories');
       await db.execute('DROP TABLE IF EXISTS transactions');
       await db.execute('DROP TABLE IF EXISTS items');
       await db.execute('DROP TABLE IF EXISTS users');

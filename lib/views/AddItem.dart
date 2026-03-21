@@ -3,16 +3,16 @@ import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:provider/provider.dart';
 import '../models/category.dart' as model;
 
-/// Vista para añadir una nueva inversion mediante seleccion de listas.
+/// Vista para añadir una nueva inversión.
 class Additem extends StatefulWidget {
   const Additem({super.key});
   static const routeName = '/additem';
 
   @override
-  State<Additem> createState() => _AddItem();
+  State<Additem> createState() => _AddItemState();
 }
 
-class _AddItem extends State<Additem> {
+class _AddItemState extends State<Additem> {
   final Color _primaryDark = Colors.black;
   final Color _accentGreen = Colors.lightGreenAccent;
   final Color _textColor = Colors.white;
@@ -21,10 +21,11 @@ class _AddItem extends State<Additem> {
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
 
-  model.Category? selectedCategory;
+  int? selectedCategoryId;
   String? selectedAssetName;
+  String? selectedCategoryName;
 
-  /// Mapa que relaciona cada categoria con sus activos disponibles.
+  /// Mapa de activos por categoría
   final Map<String, List<String>> _assetsByCategory = {
     'Acción': ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'NVDA'],
     'Criptomoneda': [
@@ -37,6 +38,14 @@ class _AddItem extends State<Additem> {
     ],
     'Divisa': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP'],
   };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<Invviewmodel>(context, listen: false).fetchCategories();
+    });
+  }
 
   @override
   void dispose() {
@@ -55,59 +64,63 @@ class _AddItem extends State<Additem> {
         backgroundColor: _primaryDark,
         foregroundColor: _accentGreen,
         elevation: 0,
-        title: const Text("NUEVA INVERSIÓN"),
+        title: const Text(
+          "NUEVA INVERSIÓN",
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Desplegable de Categoría
             _buildLabel("1. SELECCIONA CATEGORÍA"),
             const SizedBox(height: 8),
-            DropdownButtonFormField<model.Category>(
+            DropdownButtonFormField<int>(
               dropdownColor: _fieldFillColor,
               style: TextStyle(color: _textColor),
               decoration: _inputDecoration(
                 "Categoría",
                 Icons.category_outlined,
               ),
-              initialValue: selectedCategory,
+              value: selectedCategoryId,
+              hint: Text(
+                "Elige una categoría",
+                style: TextStyle(color: _textColor.withOpacity(0.3)),
+              ),
               items: invViewModel.categories.map((cat) {
-                return DropdownMenuItem(
-                  value: cat,
+                return DropdownMenuItem<int>(
+                  value: cat.id,
                   child: Text(cat.name, style: TextStyle(color: _textColor)),
                 );
               }).toList(),
               onChanged: (val) {
                 setState(() {
-                  selectedCategory = val;
-                  selectedAssetName =
-                      null; // Reiniciamos el activo al cambiar categoria
+                  selectedCategoryId = val;
+                  selectedCategoryName = invViewModel.categories
+                      .firstWhere((c) => c.id == val)
+                      .name;
+                  selectedAssetName = null;
                 });
               },
             ),
 
             const SizedBox(height: 25),
 
-            // 2. Desplegable de Activo (Dependiente)
             _buildLabel("2. SELECCIONA ACTIVO"),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               dropdownColor: _fieldFillColor,
               disabledHint: const Text(
-                "Elige primero una categoría",
+                "Elige primero categoría",
                 style: TextStyle(color: Colors.grey),
               ),
               style: TextStyle(color: _textColor),
               decoration: _inputDecoration("Activo", Icons.auto_graph),
-              initialValue: selectedAssetName,
-              // Si no hay categoria seleccionada, la lista esta vacia
-              items: selectedCategory == null
+              value: selectedAssetName,
+              items: selectedCategoryName == null
                   ? []
-                  : (_assetsByCategory[selectedCategory!.name] ?? []).map((
-                      name,
-                    ) {
+                  : (_assetsByCategory[selectedCategoryName] ?? []).map((name) {
                       return DropdownMenuItem(
                         value: name,
                         child: Text(name, style: TextStyle(color: _textColor)),
@@ -118,7 +131,6 @@ class _AddItem extends State<Additem> {
 
             const SizedBox(height: 25),
 
-            // 3. Cantidad y Precio
             Row(
               children: [
                 Expanded(
@@ -151,7 +163,6 @@ class _AddItem extends State<Additem> {
 
             const SizedBox(height: 40),
 
-            // Botón Guardar
             invViewModel.isLoading
                 ? Center(child: CircularProgressIndicator(color: _accentGreen))
                 : ElevatedButton(
@@ -159,17 +170,16 @@ class _AddItem extends State<Additem> {
                       backgroundColor: _accentGreen,
                       foregroundColor: _primaryDark,
                       minimumSize: const Size(double.infinity, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: () async {
-                      if (selectedCategory == null ||
+                      if (selectedCategoryId == null ||
                           selectedAssetName == null ||
                           quantityController.text.isEmpty ||
                           priceController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Completa todos los pasos"),
-                          ),
-                        );
+                        _showError("Por favor, completa todos los campos");
                         return;
                       }
 
@@ -182,14 +192,17 @@ class _AddItem extends State<Additem> {
                         name: selectedAssetName!,
                         stocks: stocks,
                         price: price,
-                        categoryId: selectedCategory!.id,
+                        categoryId: selectedCategoryId!,
                       );
 
                       if (context.mounted) Navigator.pop(context);
                     },
                     child: const Text(
                       "CONFIRMAR INVERSIÓN",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
           ],
@@ -198,7 +211,6 @@ class _AddItem extends State<Additem> {
     );
   }
 
-  /// Estilo de las etiquetas de los campos.
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -210,7 +222,6 @@ class _AddItem extends State<Additem> {
     );
   }
 
-  /// Estilo de los inputs (Sin azul). [cite: 2026-02-09]
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
@@ -229,7 +240,6 @@ class _AddItem extends State<Additem> {
     );
   }
 
-  /// Campo de texto para valores numericos.
   Widget _buildTextField(
     TextEditingController controller,
     String hint,
@@ -240,6 +250,12 @@ class _AddItem extends State<Additem> {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: TextStyle(color: _textColor),
       decoration: _inputDecoration(hint, icon),
+    );
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.redAccent, content: Text(msg)),
     );
   }
 }

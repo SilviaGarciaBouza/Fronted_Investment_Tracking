@@ -5,10 +5,20 @@ import 'package:http/http.dart' as http;
 class ApiService {
   final String baseUrl = "http://localhost:8080/api";
   //final String baseUrl = "http://10.0.2.2:8080/api";
+  Map<String, String> _getHeaders(String? token) {
+    return {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
+  }
 
   /// Realiza una peticion GET para obtener datos del servidor.
-  Future<dynamic> get(String endpoint) async {
-    final response = await http.get(Uri.parse('$baseUrl$endpoint'));
+  Future<dynamic> get(String endpoint, {String? token}) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: _getHeaders(token),
+    );
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -18,11 +28,15 @@ class ApiService {
 
   /// Realiza una peticion POST enviando un cuerpo en formato JSON.
   /// Maneja especificamente el error 401 para credenciales incorrectas.
-  Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> post(
+    String endpoint,
+    Map<String, dynamic> data, {
+    String? token,
+  }) async {
     final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
-
-      headers: {"Content-Type": "application/json"},
+      headers: _getHeaders(token),
+      // headers: {"Content-Type": "application/json"},
       body: json.encode(data),
     );
 
@@ -36,12 +50,11 @@ class ApiService {
   }
 
   /// Realiza una petición DELETE para eliminar un recurso.
-  Future<bool> delete(String endpoint) async {
-    final response = await http.delete(Uri.parse('$baseUrl$endpoint'));
-    if (response.statusCode == 200 || response.statusCode == 204) {
-      return true;
-    } else {
-      throw Exception('Error DELETE: ${response.statusCode}');
-    }
+  Future<bool> delete(String endpoint, {String? token}) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: _getHeaders(token),
+    );
+    return response.statusCode == 200 || response.statusCode == 204;
   }
 }

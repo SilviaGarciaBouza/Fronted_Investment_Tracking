@@ -41,13 +41,26 @@ class Item {
 
   double get valueEur => stocks * currentPrice;
 
-  factory Item.fromLocalMap(Map<String, dynamic> map) {
+  factory Item.fromLocalMap(
+    Map<String, dynamic> map,
+    List<Map<String, dynamic>> txMaps,
+  ) {
     return Item(
       id: map['id'],
       name: map['name'],
-      category: Category(id: 0, name: map['category_name'] ?? 'Sin categoría'),
+      category: Category(id: 0, name: map['category_name'] ?? 'Inversión'),
       currentPrice: (map['current_price'] ?? 0.0).toDouble(),
-      transactions: [],
+      transactions: txMaps
+          .map(
+            (tx) => Transaction(
+              id: tx['id'],
+              stocks: (tx['stocks'] ?? 0.0).toDouble(),
+              purchasePrice: (tx['purchase_price'] ?? 0.0).toDouble(),
+              invEur: (tx['inv_eur'] ?? 0.0).toDouble(),
+              purchaseDate: DateTime.parse(tx['purchase_date']),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -60,6 +73,7 @@ class Item {
       'current_price': currentPrice,
       'stocks': stocks,
       'pnl_percent': nRPlPercentaje,
+      'inv_eur': invEur,
     };
   }
 }

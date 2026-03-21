@@ -14,8 +14,11 @@ class AuthRepository {
         "password": password,
       });
       print(response);
-      if (response != null) {
-        return User.fromJson(response['user']);
+      if (response != null && response['user'] != null) {
+        final userData = Map<String, dynamic>.from(response['user']);
+        userData['token'] = response['token'];
+
+        return User.fromJson(userData);
       }
     } catch (e) {
       print("Error en login: $e");

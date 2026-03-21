@@ -28,7 +28,7 @@ class _Homeview extends State<Homeview> {
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos al ViewModel
+    // Escuchamos los cambios en el ViewModel
     final invViewmodel = Provider.of<Invviewmodel>(context);
 
     return Scaffold(
@@ -36,6 +36,11 @@ class _Homeview extends State<Homeview> {
       appBar: AppBar(
         backgroundColor: _black,
         elevation: 0,
+        leading: Icon(
+          invViewmodel.isOnline ? Icons.cloud_done : Icons.cloud_off,
+          color: invViewmodel.isOnline ? _greenAccent : Colors.redAccent,
+          size: 22,
+        ),
         title: Text(
           "MY INVESTMENTS",
           style: TextStyle(
@@ -46,6 +51,20 @@ class _Homeview extends State<Homeview> {
         ),
         centerTitle: true,
         actions: [
+          if (!invViewmodel.isOnline)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 8.0),
+                child: Text(
+                  "OFFLINE",
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           IconButton(
             icon: Icon(Icons.show_chart, color: _greenAccent),
             onPressed: () => Navigator.pushNamed(context, TotalView.routeName),
@@ -65,7 +84,7 @@ class _Homeview extends State<Homeview> {
                     _buildHeader(),
                     Divider(color: _headerColor.withOpacity(0.3)),
 
-                    // Lista de activos desde MariaDB
+                    // Lista de activos procesada (Sync + Local/Remoto)
                     Expanded(
                       child: invViewmodel.itemList.isEmpty
                           ? _buildEmptyState()
@@ -84,8 +103,7 @@ class _Homeview extends State<Homeview> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.pushNamed(context, Additem.routeName);
-          // Al volver, refrescamos los datos por si se ha añadido algo
-          //invViewmodel.fetchItems();
+          // Al volver, el ViewModel ya gestiona el refresco en saveNewItem
         },
         backgroundColor: _greenAccent,
         child: const Icon(Icons.add, color: Colors.black, size: 30),
@@ -93,7 +111,7 @@ class _Homeview extends State<Homeview> {
     );
   }
 
-  // Widget para la cabecera
+  // Widget para la cabecera con estilo minimalista
   Widget _buildHeader() {
     return Row(
       children: [
@@ -164,7 +182,7 @@ class _Homeview extends State<Homeview> {
                   color: _textColor,
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.underline,
-                  decorationColor: _greenAccent,
+                  decorationColor: _greenAccent.withOpacity(0.5),
                 ),
               ),
             ),
@@ -197,40 +215,45 @@ class _Homeview extends State<Homeview> {
               size: 22,
             ),
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: _black,
-                  title: Text(
-                    "¿Borrar ${element.name}?",
-                    style: TextStyle(color: _textColor),
-                  ),
-                  content: Text(
-                    "Esta acción no se puede deshacer.",
-                    style: TextStyle(color: _headerColor),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "CANCELAR",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        vm.deleteItem(element.id);
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        "BORRAR",
-                        style: TextStyle(color: Colors.redAccent),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              _showDeleteDialog(element, vm);
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Diálogo de confirmación para eliminar
+  void _showDeleteDialog(Item element, Invviewmodel vm) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: Text(
+          "¿Borrar ${element.name}?",
+          style: TextStyle(color: _textColor),
+        ),
+        content: Text(
+          "Esta acción eliminará el activo y todo su historial de transacciones.",
+          style: TextStyle(color: _headerColor),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "CANCELAR",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              vm.deleteItem(element.id);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "BORRAR",
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -239,9 +262,17 @@ class _Homeview extends State<Homeview> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Text(
-        "No hay inversiones. ¡Pulsa + para añadir!",
-        style: TextStyle(color: _headerColor),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.pie_chart_outline, color: _headerColor, size: 50),
+          const SizedBox(height: 10),
+          Text(
+            "No hay inversiones.\n¡Pulsa + para añadir la primera!",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _headerColor),
+          ),
+        ],
       ),
     );
   }
