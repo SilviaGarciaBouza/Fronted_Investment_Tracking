@@ -1,10 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Servicio base para la comunicacion con la API REST de Spring Boot.
+/// Servicio base para la comunicación con la API REST de Spring Boot.
+///
+/// Gestiona las cabeceras de autenticación y la serialización JSON para
+/// todas las peticiones HTTP (GET, POST, DELETE).
 class ApiService {
+  /// URL base del servidor.
   final String baseUrl = "http://localhost:8080/api";
   //final String baseUrl = "http://10.0.2.2:8080/api";
+
+  /// Genera las cabeceras necesarias para la petición.
+  ///
+  /// Incluye el Token JWT en formato Bearer si el usuario está autenticado.
   Map<String, String> _getHeaders(String? token) {
     return {
       "Content-Type": "application/json",
@@ -13,7 +21,7 @@ class ApiService {
     };
   }
 
-  /// Realiza una peticion GET para obtener datos del servidor.
+  /// Realiza una petición GET para obtener recursos del servidor.
   Future<dynamic> get(String endpoint, {String? token}) async {
     final response = await http.get(
       Uri.parse('$baseUrl$endpoint'),
@@ -26,8 +34,9 @@ class ApiService {
     }
   }
 
-  /// Realiza una peticion POST enviando un cuerpo en formato JSON.
-  /// Maneja especificamente el error 401 para credenciales incorrectas.
+  /// Realiza una petición POST enviando un cuerpo en formato JSON.
+  ///
+  /// Retorna null si el servidor responde con 401 (No autorizado).
   Future<dynamic> post(
     String endpoint,
     Map<String, dynamic> data, {
@@ -36,7 +45,6 @@ class ApiService {
     final response = await http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: _getHeaders(token),
-      // headers: {"Content-Type": "application/json"},
       body: json.encode(data),
     );
 
@@ -49,7 +57,7 @@ class ApiService {
     }
   }
 
-  /// Realiza una petición DELETE para eliminar un recurso.
+  /// Realiza una petición DELETE para eliminar un recurso remoto.
   Future<bool> delete(String endpoint, {String? token}) async {
     final response = await http.delete(
       Uri.parse('$baseUrl$endpoint'),

@@ -1,19 +1,22 @@
 import '../models/user.dart';
 import '../service/api_service.dart';
 
-/// Repositorio encargado de la gestion de sesiones y autenticacion.
+/// Repositorio encargado de la gestión de sesiones y autenticación de usuarios.
+///
+/// Actúa como intermediario entre el servicio de red y la lógica de negocio de la App.
 class AuthRepository {
   final ApiService _apiService = ApiService();
 
-  /// Envia las credenciales al servidor para iniciar sesion.
-  /// Retorna un objeto User si la autenticacion es exitosa o null si falla.
+  /// Envía las credenciales al servidor MariaDB para iniciar sesión.
+  ///
+  /// Retorna un objeto [User] con su token si el login es correcto, o null en caso de error.
   Future<User?> login(String username, String password) async {
     try {
       final response = await _apiService.post('/users/login', {
         "username": username,
         "password": password,
       });
-      print(response);
+
       if (response != null && response['user'] != null) {
         final userData = Map<String, dynamic>.from(response['user']);
         userData['token'] = response['token'];
@@ -26,7 +29,9 @@ class AuthRepository {
     return null;
   }
 
-  /// Registra un nuevo usuario en la base de datos MariaDB.
+  /// Registra una nueva cuenta de usuario en el servidor.
+  ///
+  /// Devuelve true si el registro fue exitoso.
   Future<bool> register(String username, String password, String email) async {
     try {
       final data = await _apiService.post('/users/register', {

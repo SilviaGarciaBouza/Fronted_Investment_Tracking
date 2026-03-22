@@ -26,6 +26,7 @@ class _AddItemState extends State<Additem> {
   String? selectedCategoryName;
 
   /// Mapa de activos por categoría
+  /*
   final Map<String, List<String>> _assetsByCategory = {
     'Acción': ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'NVDA'],
     'Criptomoneda': [
@@ -37,6 +38,32 @@ class _AddItemState extends State<Additem> {
       'DOGE/USD',
     ],
     'Divisa': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP'],
+  };
+
+*/
+
+  final Map<String, List<String>> _assetsByCategory = {
+    'Accion': [
+      'AAPL', // Apple
+      'MSFT', // Microsoft
+      'GOOGL', // Google
+      'AMZN', // Amazon
+      'TSLA', // Tesla
+      'NVDA', // NVIDIA
+    ],
+    'Criptomoneda': [
+      'BTC/USD', // Bitcoin
+      'ETH/USD', // Ethereum
+      'SOL/USD', // Solana
+      'ADA/USD', // Cardano
+      'XRP/USD', // Ripple
+    ],
+    'Divisa': [
+      'EUR/USD', // Euro/Dólar
+      'GBP/USD', // Libra/Dólar
+      'USD/JPY', // Dólar/Yen
+      'EUR/GBP', // Euro/Libra
+    ],
   };
 
   @override

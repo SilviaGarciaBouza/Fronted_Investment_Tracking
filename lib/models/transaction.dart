@@ -1,3 +1,6 @@
+/// Representa una operación individual de compra o movimiento financiero.
+///
+/// Contiene datos sobre la cantidad de acciones, precio y fecha.
 class Transaction {
   final int id;
   final double stocks;
@@ -13,6 +16,7 @@ class Transaction {
     required this.purchaseDate,
   });
 
+  /// Mapea los datos del servidor a un objeto [Transaction].
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
       id: json['id'],
@@ -25,6 +29,7 @@ class Transaction {
     );
   }
 
+  /// Convierte la transacción para ser enviada al servidor o guardada.
   Map<String, dynamic> toJson() => {
     'id': id,
     'stocks': stocks,

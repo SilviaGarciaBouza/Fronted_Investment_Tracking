@@ -1,3 +1,6 @@
+/// Representa al usuario autenticado en el sistema.
+///
+/// Almacena el token de sesión necesario para las peticiones al backend.
 class User {
   final int id;
   final String username;
@@ -11,6 +14,7 @@ class User {
     required this.token,
   });
 
+  /// Crea un [User] tras un inicio de sesión exitoso.
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? 0,
