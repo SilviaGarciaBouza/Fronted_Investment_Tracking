@@ -94,10 +94,9 @@ class Invviewmodel extends ChangeNotifier {
     }
   }
 
-  // Nueva función auxiliar para no bloquear
   Future<void> _runBackgroundSync() async {
     await syncEverything();
-    // Si algo cambió tras sincronizar, refrescamos la lista local silenciosamente
+    // Si algo cambió tras sincronizar, refrescamos la lista local
     itemList = await _itemDao.getItems(currentUser!.id);
     notifyListeners();
   }
@@ -136,6 +135,10 @@ class Invviewmodel extends ChangeNotifier {
         "initialStocks": item.stocks,
         "initialPrice": item.currentPrice,
       };
+
+      print("Item: ${item.name}");
+      print("Stocks: ${item.stocks}");
+      print("Precio Actual: ${item.currentPrice}");
 
       try {
         if (await _itemRepo.saveItem(data, currentUser!.token)) {

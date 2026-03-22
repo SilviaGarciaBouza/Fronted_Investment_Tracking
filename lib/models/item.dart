@@ -28,6 +28,9 @@ class Item {
   /// Calcula el total invertido en euros sumando las transacciones.
   double get invEur => transactions.fold(0, (sum, tx) => sum + tx.invEur);
 
+  /// Beneficio en Euros (PnL Bruto)
+  double get pnlEur => valueEur - invEur;
+
   /// Suma la cantidad total de acciones o participaciones.
   double get stocks => transactions.fold(0, (sum, tx) => sum + tx.stocks);
 
@@ -35,8 +38,10 @@ class Item {
   double get valueEur => stocks * currentPrice;
 
   /// Calcula el porcentaje de pérdidas o ganancias no realizadas.
-  double get nRPlPercentaje =>
-      invEur == 0 ? 0 : ((valueEur - invEur) / invEur) * 100;
+  double get nRPlPercentaje {
+    if (invEur == 0) return 0.0;
+    return (pnlEur / invEur) * 100;
+  }
 
   /// Constructor para crear un [Item] desde la respuesta de la API.
   factory Item.fromJson(Map<String, dynamic> json) {

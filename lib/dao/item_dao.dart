@@ -48,6 +48,7 @@ class ItemDao {
     return unsynced;
   }
 
+  /*
   Future<void> saveItems(List<Item> items, int userId) async {
     final db = await dbHelper.database;
 
@@ -68,6 +69,53 @@ class ItemDao {
     }
 
     debugPrint("${items.length} inversiones sincronizadas y guardadas.");
+  }*/
+  /// Sincroniza y persiste los activos provenientes del servidor en la base de datos local.
+  Future<void> saveItems(List<Item> items, int userId) async {
+    final db = await dbHelper.database;
+
+    for (var item in items) {
+      final List<Map<String, dynamic>> existing = await db.query(
+        'items',
+        where: 'name = ? AND user_id = ?',
+        whereArgs: [item.name, userId],
+      );
+
+      if (existing.isNotEmpty) {
+        final localItem = existing.first;
+        int localId = localItem['id'];
+
+        if (localItem['is_deleted'] == 1) continue;
+
+        if (localId != item.id) {
+          print("FUSIONANDO: Migrando datos de $localId al ID real ${item.id}");
+
+          await db.update(
+            'transactions',
+            {'item_id': item.id},
+            where: 'item_id = ?',
+            whereArgs: [localId],
+          );
+
+          await db.delete('items', where: 'id = ?', whereArgs: [localId]);
+        }
+      }
+
+      final map = item.toLocalMap(userId);
+      map['is_synced'] = 1;
+      map['is_deleted'] = 0;
+
+      await db.insert(
+        'items',
+        map,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      if (item.transactions.isNotEmpty) {
+        await transactionDao.syncTransactions(item.transactions, item.id);
+      }
+    }
+    debugPrint("${items.length} inversiones procesadas sin duplicados.");
   }
 
   /// Cambia el estado de un item a sincronizado tras una subida exitosa.
