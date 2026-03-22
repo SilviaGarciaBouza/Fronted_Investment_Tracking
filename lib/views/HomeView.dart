@@ -54,20 +54,17 @@ class _HomeviewState extends State<Homeview> {
             size: 22,
           ),
           onPressed: () async {
+            bool syncOk = await invViewModel.syncEverything();
+
             await invViewModel.fetchItems();
+
             if (context.mounted) {
-              if (invViewModel.isOnline && invViewModel.lastSyncSuccess) {
-                _showSnackBar(context, "Sincronización finalizada con éxito ✅");
-              } else if (!invViewModel.isOnline) {
-                _showSnackBar(
-                  context,
-                  "Sin conexión: Modo local activo ☁️",
-                  isError: true,
-                );
+              if (invViewModel.isOnline && syncOk) {
+                _showSnackBar(context, "Sincronización finalizada con éxito ");
               } else {
                 _showSnackBar(
                   context,
-                  "Error parcial: Algunos datos no se sincronizaron ⚠️",
+                  "Error al sincronizar datos ",
                   isError: true,
                 );
               }

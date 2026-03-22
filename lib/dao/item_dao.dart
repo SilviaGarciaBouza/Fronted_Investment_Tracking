@@ -10,7 +10,7 @@ class ItemDao {
   final transactionDao = TransactionDao();
 
   /// Guarda los items provenientes del servidor y los marca como sincronizados.
-  Future<void> saveItems(List<Item> items, int userId) async {
+  /* Future<void> saveItems(List<Item> items, int userId) async {
     final db = await dbHelper.database;
     final batch = db.batch();
 
@@ -25,7 +25,7 @@ class ItemDao {
 
     await batch.commit(noResult: true);
     debugPrint("${items.length} inversiones sincronizadas y guardadas.");
-  }
+  }*/
 
   /// Obtiene los items creados localmente que aún no se han subido al servidor.
   Future<List<Item>> getUnsyncedItems(int userId) async {
@@ -46,6 +46,28 @@ class ItemDao {
       unsynced.add(Item.fromLocalMap(map, txMaps));
     }
     return unsynced;
+  }
+
+  Future<void> saveItems(List<Item> items, int userId) async {
+    final db = await dbHelper.database;
+
+    for (var item in items) {
+      final map = item.toLocalMap(userId);
+      map['is_synced'] = 1;
+      map['is_deleted'] = 0;
+
+      await db.insert(
+        'items',
+        map,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      if (item.transactions != null && item.transactions.isNotEmpty) {
+        await transactionDao.syncTransactions(item.transactions, item.id);
+      }
+    }
+
+    debugPrint("${items.length} inversiones sincronizadas y guardadas.");
   }
 
   /// Cambia el estado de un item a sincronizado tras una subida exitosa.
