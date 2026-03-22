@@ -43,7 +43,7 @@ class _AddItemState extends State<Additem> {
 */
 
   final Map<String, List<String>> _assetsByCategory = {
-    'Accion': [
+    'Acción': [
       'AAPL', // Apple
       'MSFT', // Microsoft
       'GOOGL', // Google
