@@ -8,7 +8,7 @@ class TotalView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final invViewmodel = Provider.of<Invviewmodel>(context);
+    final invViewmodel = Provider.of<InvViewModel>(context);
 
     const Color primaryDark = Colors.black;
     const Color accentGreen = Colors.lightGreenAccent;

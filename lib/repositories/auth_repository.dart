@@ -1,15 +1,13 @@
 import '../models/user.dart';
 import '../service/api_service.dart';
+import '../dao/user_dao.dart';
 
-/// Repositorio encargado de la gestión de sesiones y autenticación de usuarios.
-///
-/// Actúa como intermediario entre el servicio de red y la lógica de negocio de la App.
+/// Gestiona la autenticación y la persistencia de la sesión.
 class AuthRepository {
   final ApiService _apiService = ApiService();
+  final UserDao _userDao = UserDao();
 
-  /// Envía las credenciales al servidor MariaDB para iniciar sesión.
-  ///
-  /// Retorna un objeto [User] con su token si el login es correcto, o null en caso de error.
+  /// Realiza el login, guarda el usuario en SQLite y devuelve el objeto [User].
   Future<User?> login(String username, String password) async {
     try {
       final response = await _apiService.post('/users/login', {
@@ -17,31 +15,25 @@ class AuthRepository {
         "password": password,
       });
 
-      if (response != null && response['user'] != null) {
-        final userData = Map<String, dynamic>.from(response['user']);
-        userData['token'] = response['token'];
-
-        return User.fromJson(userData);
+      if (response != null) {
+        final user = User.fromJson(response);
+        // Persistencia local de la sesión
+        await _userDao.saveUser(user);
+        return user;
       }
     } catch (e) {
-      print("Error en login: $e");
+      print("Error Auth: $e");
     }
     return null;
   }
 
-  /// Registra una nueva cuenta de usuario en el servidor.
-  ///
-  /// Devuelve true si el registro fue exitoso.
+  /// Registra un nuevo usuario en MariaDB.
   Future<bool> register(String username, String password, String email) async {
-    try {
-      final data = await _apiService.post('/users/register', {
-        "username": username,
-        "password": password,
-        "email": email,
-      });
-      return data != null;
-    } catch (e) {
-      return false;
-    }
+    final data = await _apiService.post('/users/register', {
+      "username": username,
+      "password": password,
+      "email": email,
+    });
+    return data != null;
   }
 }

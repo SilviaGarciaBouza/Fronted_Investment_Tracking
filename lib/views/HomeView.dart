@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/views/AddItem.dart';
 import 'package:provider/provider.dart';
+import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/views/total_view.dart';
+import 'package:investment_tracking/views/TransactionDetailView.dart';
+import 'package:investment_tracking/views/LoginView.dart';
 import '../models/item.dart';
-import 'AddItem.dart';
-import 'total_view.dart';
-import 'TransactionDetailView.dart';
 
-/// Vista principal de la aplicación (Home).
-///
-/// Muestra el listado de activos de la cartera, el estado de sincronización
-/// y permite acceder a la creación de nuevos items o al detalle de transacciones.
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
-
-  /// Nombre de la ruta para la navegación.
   static const routeName = '/home';
 
   @override
@@ -23,53 +18,29 @@ class Homeview extends StatefulWidget {
 class _HomeviewState extends State<Homeview> {
   final Color _black = Colors.black;
   final Color _greenAccent = Colors.lightGreenAccent;
-  final Color _textColor = Colors.white;
   final Color _headerColor = Colors.grey.shade500;
 
   @override
   void initState() {
     super.initState();
-
-    /// Carga inicial de items al renderizar la pantalla por primera vez.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<Invviewmodel>(context, listen: false).fetchItems();
+      Provider.of<InvViewModel>(context, listen: false).fetchItems();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final invViewModel = Provider.of<Invviewmodel>(context);
+    final vm = Provider.of<InvViewModel>(context);
 
     return Scaffold(
       backgroundColor: _black,
       appBar: AppBar(
         backgroundColor: _black,
         elevation: 0,
-
-        /// Icono indicador de estado de red (Online/Offline).
-        leading: IconButton(
-          icon: Icon(
-            invViewModel.isOnline ? Icons.cloud_done : Icons.cloud_off,
-            color: invViewModel.isOnline ? _greenAccent : Colors.redAccent,
-            size: 22,
-          ),
-          onPressed: () async {
-            bool syncOk = await invViewModel.syncEverything();
-
-            await invViewModel.fetchItems();
-
-            if (context.mounted) {
-              if (invViewModel.isOnline && syncOk) {
-                _showSnackBar(context, "Sincronización finalizada con éxito ");
-              } else {
-                _showSnackBar(
-                  context,
-                  "Error al sincronizar datos ",
-                  isError: true,
-                );
-              }
-            }
-          },
+        leading: Icon(
+          vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
+          color: vm.isOnline ? _greenAccent : Colors.redAccent,
+          size: 22,
         ),
         title: Text(
           "MY PORTFOLIO",
@@ -80,35 +51,27 @@ class _HomeviewState extends State<Homeview> {
           ),
         ),
         actions: [
-          /// Botón para ver el resumen total de la cartera.
           IconButton(
             icon: Icon(Icons.leaderboard_outlined, color: _greenAccent),
+            tooltip: "Ver Totales",
             onPressed: () => Navigator.pushNamed(context, TotalView.routeName),
           ),
-          //boton logout
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: "Cerrar Sesión",
             onPressed: () async {
-              await invViewModel.logout();
-
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              }
+              await vm.logout();
+              if (context.mounted)
+                Navigator.pushReplacementNamed(context, LoginView.routeName);
             },
           ),
         ],
       ),
-      body: invViewModel.isLoading && invViewModel.itemList.isEmpty
+      body: vm.isLoading && vm.itemList.isEmpty
           ? Center(child: CircularProgressIndicator(color: _greenAccent))
           : RefreshIndicator(
               color: _greenAccent,
               backgroundColor: _black,
-              onRefresh: () => invViewModel.fetchItems(),
+              onRefresh: () => vm.fetchItems(),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -116,14 +79,12 @@ class _HomeviewState extends State<Homeview> {
                     _buildHeader(),
                     const Divider(color: Colors.white10),
                     Expanded(
-                      child: invViewModel.itemList.isEmpty
+                      child: vm.itemList.isEmpty
                           ? _buildEmptyState()
                           : ListView.builder(
-                              itemCount: invViewModel.itemList.length,
-                              itemBuilder: (context, index) {
-                                final item = invViewModel.itemList[index];
-                                return _buildItemRow(item, invViewModel);
-                              },
+                              itemCount: vm.itemList.length,
+                              itemBuilder: (context, index) =>
+                                  _buildItemRow(vm.itemList[index], vm),
                             ),
                     ),
                   ],
@@ -132,13 +93,18 @@ class _HomeviewState extends State<Homeview> {
             ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _greenAccent,
-        onPressed: () => Navigator.pushNamed(context, Additem.routeName),
+        onPressed: () async {
+          await Navigator.pushNamed(context, Additem.routeName);
+
+          if (context.mounted) {
+            Provider.of<InvViewModel>(context, listen: false).fetchItems();
+          }
+        },
         child: const Icon(Icons.add, color: Colors.black, size: 30),
       ),
     );
   }
 
-  /// Construye la cabecera de la tabla de inversiones.
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -148,7 +114,7 @@ class _HomeviewState extends State<Homeview> {
           Expanded(flex: 2, child: Text("CANT.", style: _headerStyle())),
           Expanded(flex: 2, child: Text("VALOR", style: _headerStyle())),
           Expanded(flex: 2, child: Text("PnL %", style: _headerStyle())),
-          const SizedBox(width: 35),
+          const SizedBox(width: 35), // Espacio para el botón de borrar
         ],
       ),
     );
@@ -157,14 +123,11 @@ class _HomeviewState extends State<Homeview> {
   TextStyle _headerStyle() =>
       TextStyle(color: _headerColor, fontSize: 10, fontWeight: FontWeight.bold);
 
-  /// Construye una fila individual para cada inversión.
-  ///
-  /// [element] es el objeto Item a mostrar.
-  /// [vm] es la instancia del ViewModel para gestionar acciones.
-  Widget _buildItemRow(Item element, Invviewmodel vm) {
-    Color pnlColor = element.nRPlPercentaje > 0
+  /// Fila personalizada por cada activo (Sin Cards, estilo lista limpia).
+  Widget _buildItemRow(Item element, InvViewModel vm) {
+    Color pnlColor = element.profitPercent >= 0
         ? _greenAccent
-        : (element.nRPlPercentaje < 0 ? Colors.redAccent : _textColor);
+        : Colors.redAccent;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -209,21 +172,21 @@ class _HomeviewState extends State<Homeview> {
             Expanded(
               flex: 2,
               child: Text(
-                element.stocks.toStringAsFixed(2),
-                style: TextStyle(color: _textColor, fontSize: 13),
+                element.totalStocks.toStringAsFixed(2),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
-                "${element.valueEur.toStringAsFixed(2)}€",
-                style: TextStyle(color: _textColor, fontSize: 13),
+                "${element.currentValue.toStringAsFixed(2)}€",
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
-                "${element.nRPlPercentaje.toStringAsFixed(2)}%",
+                "${element.profitPercent.toStringAsFixed(2)}%",
                 style: TextStyle(
                   color: pnlColor,
                   fontWeight: FontWeight.bold,
@@ -233,11 +196,11 @@ class _HomeviewState extends State<Homeview> {
             ),
             IconButton(
               icon: const Icon(
-                Icons.delete_sweep_outlined,
+                Icons.delete_outline,
                 color: Colors.redAccent,
                 size: 20,
               ),
-              onPressed: () => _showDeleteDialog(element, vm),
+              onPressed: () => _confirmDelete(element, vm),
             ),
           ],
         ),
@@ -245,19 +208,14 @@ class _HomeviewState extends State<Homeview> {
     );
   }
 
-  /// Muestra un diálogo de confirmación antes de eliminar una inversión.
-  void _showDeleteDialog(Item element, Invviewmodel vm) {
+  void _confirmDelete(Item item, InvViewModel vm) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          "¿Eliminar ${element.name}?",
-          style: TextStyle(color: _textColor),
-        ),
-        content: const Text(
-          "La inversión desaparecerá de tu vista. Si no hay conexión, se borrará definitivamente al sincronizar.",
-          style: TextStyle(color: Colors.white70, fontSize: 14),
+          "¿Eliminar ${item.name}?",
+          style: const TextStyle(color: Colors.white),
         ),
         actions: [
           TextButton(
@@ -268,12 +226,9 @@ class _HomeviewState extends State<Homeview> {
             ),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
+              vm.deleteItem(item.id!, item.serverId);
               Navigator.pop(context);
-              String msg = await vm.deleteItem(element.id);
-              if (context.mounted) {
-                _showSnackBar(context, msg, isError: msg.contains("Error"));
-              }
             },
             child: const Text(
               "BORRAR",
@@ -288,22 +243,6 @@ class _HomeviewState extends State<Homeview> {
     );
   }
 
-  /// Muestra una notificación rápida en la parte inferior de la pantalla.
-  void _showSnackBar(
-    BuildContext context,
-    String message, {
-    bool isError = false,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: isError ? Colors.red.shade900 : Colors.green.shade900,
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  /// Muestra un mensaje visual cuando no hay inversiones registradas.
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -312,13 +251,10 @@ class _HomeviewState extends State<Homeview> {
           Icon(
             Icons.account_balance_wallet_outlined,
             color: _headerColor,
-            size: 60,
+            size: 50,
           ),
-          const SizedBox(height: 16),
-          Text(
-            "Tu cartera está vacía",
-            style: TextStyle(color: _textColor, fontSize: 16),
-          ),
+          const SizedBox(height: 10),
+          Text("Cartera vacía", style: TextStyle(color: _headerColor)),
         ],
       ),
     );

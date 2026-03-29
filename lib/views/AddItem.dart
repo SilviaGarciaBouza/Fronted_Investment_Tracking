@@ -1,159 +1,138 @@
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:provider/provider.dart';
-import '../models/category.dart' as model;
+import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 
-/// Vista para añadir una nueva inversión.
 class Additem extends StatefulWidget {
   const Additem({super.key});
   static const routeName = '/additem';
 
   @override
-  State<Additem> createState() => _AddItemState();
+  State<Additem> createState() => _AdditemState();
 }
 
-class _AddItemState extends State<Additem> {
-  final Color _primaryDark = Colors.black;
-  final Color _accentGreen = Colors.lightGreenAccent;
-  final Color _textColor = Colors.white;
-  final Color _fieldFillColor = Colors.grey.shade900;
+class _AdditemState extends State<Additem> {
+  final Color _black = Colors.black;
+  final Color _greenAccent = Colors.lightGreenAccent;
+  final Color _fieldColor = Colors.grey.shade900;
 
-  final TextEditingController quantityController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
+  final TextEditingController _qtyController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
 
-  int? selectedCategoryId;
-  String? selectedAssetName;
-  String? selectedCategoryName;
-
-  /// Mapa de activos por categoría
-  /*
-  final Map<String, List<String>> _assetsByCategory = {
-    'Acción': ['AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA', 'NVDA'],
-    'Criptomoneda': [
-      'BTC/USD',
-      'ETH/USD',
-      'SOL/USD',
-      'ADA/USD',
-      'DOT/USD',
-      'DOGE/USD',
-    ],
-    'Divisa': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP'],
-  };
-
-*/
+  int? _selectedCatId;
+  String? _selectedCategoryName;
+  String? _selectedAssetName;
 
   final Map<String, List<String>> _assetsByCategory = {
-    'Acción': [
-      'AAPL', // Apple
-      'MSFT', // Microsoft
-      'GOOGL', // Google
-      'AMZN', // Amazon
-      'TSLA', // Tesla
-      'NVDA', // NVIDIA
-    ],
-    'Criptomoneda': [
-      'BTC/USD', // Bitcoin
-      'ETH/USD', // Ethereum
-      'SOL/USD', // Solana
-      'ADA/USD', // Cardano
-      'XRP/USD', // Ripple
-    ],
-    'Divisa': [
-      'EUR/USD', // Euro/Dólar
-      'GBP/USD', // Libra/Dólar
-      'USD/JPY', // Dólar/Yen
-      'EUR/GBP', // Euro/Libra
-    ],
+    'Acción': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA'],
+    'Criptomoneda': ['BTC/EUR', 'ETH/EUR', 'SOL/EUR', 'ADA/EUR', 'XRP/EUR'],
+    'Divisa': ['EUR/USD', 'EUR/GBP', 'EUR/JPY', 'EUR/CHF'],
   };
 
   @override
   void initState() {
     super.initState();
+    _qtyController.addListener(_onFieldsChanged);
+    _priceController.addListener(_onFieldsChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<Invviewmodel>(context, listen: false).fetchCategories();
+      Provider.of<InvViewModel>(context, listen: false).fetchCategories();
     });
   }
 
   @override
   void dispose() {
-    quantityController.dispose();
-    priceController.dispose();
+    _qtyController.dispose();
+    _priceController.dispose();
     super.dispose();
+  }
+
+  void _onFieldsChanged() => setState(() {});
+
+  bool _isFormValid() {
+    final qty = double.tryParse(_qtyController.text) ?? 0;
+    final price = double.tryParse(_priceController.text) ?? 0;
+
+    return _selectedCatId != null &&
+        _selectedAssetName != null &&
+        qty > 0 &&
+        price > 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    final invViewModel = Provider.of<Invviewmodel>(context);
+    final vm = Provider.of<InvViewModel>(context);
+    final isValid = _isFormValid();
 
     return Scaffold(
-      backgroundColor: _primaryDark,
+      backgroundColor: _black,
       appBar: AppBar(
-        backgroundColor: _primaryDark,
-        foregroundColor: _accentGreen,
+        backgroundColor: _black,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "NUEVA INVERSIÓN",
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5),
+          style: TextStyle(
+            color: _greenAccent,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(25),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabel("1. SELECCIONA CATEGORÍA"),
-            const SizedBox(height: 8),
+            _label("1. CATEGORÍA"),
+            const SizedBox(height: 10),
             DropdownButtonFormField<int>(
-              dropdownColor: _fieldFillColor,
-              style: TextStyle(color: _textColor),
+              dropdownColor: _fieldColor,
+              value: _selectedCatId,
+              style: const TextStyle(color: Colors.white),
               decoration: _inputDecoration(
-                "Categoría",
+                "Selecciona categoría",
                 Icons.category_outlined,
               ),
-              value: selectedCategoryId,
-              hint: Text(
-                "Elige una categoría",
-                style: TextStyle(color: _textColor.withOpacity(0.3)),
-              ),
-              items: invViewModel.categories.map((cat) {
-                return DropdownMenuItem<int>(
-                  value: cat.id,
-                  child: Text(cat.name, style: TextStyle(color: _textColor)),
-                );
-              }).toList(),
+              items: vm.categories
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
+                  .toList(),
               onChanged: (val) {
                 setState(() {
-                  selectedCategoryId = val;
-                  selectedCategoryName = invViewModel.categories
+                  _selectedCatId = val;
+                  _selectedCategoryName = vm.categories
                       .firstWhere((c) => c.id == val)
                       .name;
-                  selectedAssetName = null;
+                  _selectedAssetName = null;
                 });
               },
             ),
 
             const SizedBox(height: 25),
 
-            _buildLabel("2. SELECCIONA ACTIVO"),
-            const SizedBox(height: 8),
+            _label("2. ACTIVO"),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              dropdownColor: _fieldFillColor,
+              dropdownColor: _fieldColor,
+              value: _selectedAssetName,
               disabledHint: const Text(
-                "Elige primero categoría",
+                "Elige categoría primero",
                 style: TextStyle(color: Colors.grey),
               ),
-              style: TextStyle(color: _textColor),
-              decoration: _inputDecoration("Activo", Icons.auto_graph),
-              value: selectedAssetName,
-              items: selectedCategoryName == null
-                  ? []
-                  : (_assetsByCategory[selectedCategoryName] ?? []).map((name) {
-                      return DropdownMenuItem(
-                        value: name,
-                        child: Text(name, style: TextStyle(color: _textColor)),
-                      );
-                    }).toList(),
-              onChanged: (val) => setState(() => selectedAssetName = val),
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration(
+                "Selecciona activo",
+                Icons.auto_graph,
+              ),
+              items: _selectedCategoryName == null
+                  ? null
+                  : (_assetsByCategory[_selectedCategoryName] ?? [])
+                        .map(
+                          (name) =>
+                              DropdownMenuItem(value: name, child: Text(name)),
+                        )
+                        .toList(),
+              onChanged: (val) => setState(() => _selectedAssetName = val),
             ),
 
             const SizedBox(height: 25),
@@ -164,13 +143,9 @@ class _AddItemState extends State<Additem> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel("CANTIDAD"),
-                      const SizedBox(height: 8),
-                      _buildTextField(
-                        quantityController,
-                        "0.00",
-                        Icons.add_chart,
-                      ),
+                      _label("CANTIDAD (> 0)"),
+                      const SizedBox(height: 10),
+                      _textField(_qtyController, "Ej: 0.5"),
                     ],
                   ),
                 ),
@@ -179,54 +154,45 @@ class _AddItemState extends State<Additem> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel("PRECIO COMPRA (€)"),
-                      const SizedBox(height: 8),
-                      _buildTextField(priceController, "0.00", Icons.euro),
+                      _label("PRECIO (€ > 0)"),
+                      const SizedBox(height: 10),
+                      _textField(_priceController, "0.00 €"),
                     ],
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 50),
 
-            invViewModel.isLoading
-                ? Center(child: CircularProgressIndicator(color: _accentGreen))
+            vm.isLoading
+                ? Center(child: CircularProgressIndicator(color: _greenAccent))
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _accentGreen,
-                      foregroundColor: _primaryDark,
+                      backgroundColor: _greenAccent,
+                      foregroundColor: _black,
+                      disabledBackgroundColor: Colors.grey.shade800,
+                      disabledForegroundColor: Colors.grey.shade500,
                       minimumSize: const Size(double.infinity, 60),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () async {
-                      if (selectedCategoryId == null ||
-                          selectedAssetName == null ||
-                          quantityController.text.isEmpty ||
-                          priceController.text.isEmpty) {
-                        _showError("Por favor, completa todos los campos");
-                        return;
-                      }
-
-                      final stocks =
-                          double.tryParse(quantityController.text) ?? 0.0;
-                      final price =
-                          double.tryParse(priceController.text) ?? 0.0;
-
-                      await invViewModel.saveNewItem(
-                        name: selectedAssetName!,
-                        stocks: stocks,
-                        price: price,
-                        categoryId: selectedCategoryId!,
-                      );
-
-                      if (context.mounted) Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "CONFIRMAR INVERSIÓN",
-                      style: TextStyle(
+                    // Si el formulario no es válido, onPressed es NULL (botón desactivado)
+                    onPressed: isValid
+                        ? () async {
+                            await vm.saveNewItem(
+                              name: _selectedAssetName!,
+                              stocks: double.parse(_qtyController.text),
+                              price: double.parse(_priceController.text),
+                              categoryId: _selectedCatId!,
+                            );
+                            if (mounted) Navigator.pop(context);
+                          }
+                        : null,
+                    child: Text(
+                      isValid ? "CONFIRMAR OPERACIÓN" : "COMPLETA LOS DATOS",
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -238,51 +204,35 @@ class _AddItemState extends State<Additem> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: _accentGreen,
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
+  Widget _label(String text) => Text(
+    text,
+    style: TextStyle(
+      color: _greenAccent,
+      fontSize: 11,
+      fontWeight: FontWeight.bold,
+    ),
+  );
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: _textColor.withOpacity(0.3)),
-      prefixIcon: Icon(icon, color: _accentGreen),
-      filled: true,
-      fillColor: _fieldFillColor,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade800),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: _accentGreen),
-      ),
-    );
-  }
+  InputDecoration _inputDecoration(String hint, IconData icon) =>
+      InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: _greenAccent),
+        filled: true,
+        fillColor: _fieldColor,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade800),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: _greenAccent),
+        ),
+      );
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hint,
-    IconData icon,
-  ) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: TextStyle(color: _textColor),
-      decoration: _inputDecoration(hint, icon),
-    );
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(backgroundColor: Colors.redAccent, content: Text(msg)),
-    );
-  }
+  Widget _textField(TextEditingController controller, String hint) => TextField(
+    controller: controller,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    style: const TextStyle(color: Colors.white),
+    decoration: _inputDecoration(hint, Icons.edit_note),
+  );
 }

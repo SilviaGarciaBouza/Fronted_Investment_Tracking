@@ -1,6 +1,7 @@
-/// Representa al usuario autenticado en el sistema.
+/// Representa al usuario autenticado.
 ///
-/// Almacena el token de sesión necesario para las peticiones al backend.
+/// Se utiliza en el [AuthService] para gestionar el token JWT y
+/// en el [UserRepository] para persistir el perfil básico localmente.
 class User {
   final int id;
   final String username;
@@ -14,12 +15,14 @@ class User {
     required this.token,
   });
 
-  /// Crea un [User] tras un inicio de sesión exitoso.
+  /// Crea un usuario desde la respuesta DTO del backend.
   factory User.fromJson(Map<String, dynamic> json) {
+    // Maneja tanto si el JSON viene con el nodo 'user' o directo
+    final userData = json['user'] ?? json;
     return User(
-      id: json['id'] ?? 0,
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
+      id: userData['id'] ?? 0,
+      username: userData['username'] ?? '',
+      email: userData['email'] ?? '',
       token: json['token'] ?? '',
     );
   }
