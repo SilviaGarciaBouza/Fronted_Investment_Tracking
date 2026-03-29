@@ -3,8 +3,10 @@
 /// Gestiona la sincronización individual para permitir ráfagas de subida
 /// cuando se recupera la conexión.
 class Transaction {
-  final int? id; // ID local en SQLite (autoincrement)
-  final int? serverId; // ID real en MariaDB
+  // ID local en SQLite (autoincrement)
+  final int? id;
+  final int? serverId;
+  // ID  en MariadB
   final double stocks;
   final double purchasePrice;
   final double invEur;
@@ -24,10 +26,11 @@ class Transaction {
   /// Factory para DTOs del backend.
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
     serverId: int.parse(json['id'].toString()),
-    stocks: (json['stocks'] ?? 0.0).toDouble(),
-    purchasePrice: (json['purchasePrice'] ?? 0.0).toDouble(),
-    invEur: (json['invEur'] ?? 0.0).toDouble(),
-    purchaseDate: DateTime.parse(json['purchaseDate']),
+    stocks: (json['stocks'] ?? json['amount'] ?? 0.0).toDouble(),
+    purchasePrice: (json['purchasePrice'] ?? json['purchase_price'] ?? 0.0)
+        .toDouble(),
+    invEur: (json['invEur'] ?? json['inv_eur'] ?? 0.0).toDouble(),
+    purchaseDate: DateTime.parse(json['purchaseDate'] ?? json['purchase_date']),
     isSynced: true,
   );
 
@@ -46,7 +49,6 @@ class Transaction {
   Map<String, dynamic> toLocalMap(int localItemId) => {
     'id': id,
     'server_id': serverId,
-    // Relación con el ID local del activo
     'item_id': localItemId,
     'stocks': stocks,
     'purchase_price': purchasePrice,

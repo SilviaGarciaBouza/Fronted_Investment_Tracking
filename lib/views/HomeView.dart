@@ -37,11 +37,36 @@ class _HomeviewState extends State<Homeview> {
       appBar: AppBar(
         backgroundColor: _black,
         elevation: 0,
-        leading: Icon(
-          vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
-          color: vm.isOnline ? _greenAccent : Colors.redAccent,
-          size: 22,
+
+        leading: IconButton(
+          icon: Icon(
+            vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
+            color: vm.isOnline ? _greenAccent : Colors.redAccent,
+          ),
+          tooltip: vm.isOnline
+              ? "Sincronizado con la base de datos"
+              : "Modo local: Sin conexión",
+          onPressed: () async {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  vm.isOnline
+                      ? "Sincronizando con MariaDB..."
+                      : "Modo Offline: Usando base de datos local",
+                  style: TextStyle(
+                    color: vm.isOnline
+                        ? Colors.lightGreenAccent
+                        : Colors.redAccent,
+                  ),
+                ),
+
+                duration: Duration(seconds: 3),
+              ),
+            );
+            await vm.fetchItems();
+          },
         ),
+
         title: Text(
           "MY PORTFOLIO",
           style: TextStyle(
@@ -53,11 +78,12 @@ class _HomeviewState extends State<Homeview> {
         actions: [
           IconButton(
             icon: Icon(Icons.leaderboard_outlined, color: _greenAccent),
-            tooltip: "Ver Totales",
+            tooltip: "Ver resumen de beneficios totales",
             onPressed: () => Navigator.pushNamed(context, TotalView.routeName),
           ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: "Cerrar sesión de ${vm.currentUser?.username}",
             onPressed: () async {
               await vm.logout();
               if (context.mounted)
@@ -93,6 +119,7 @@ class _HomeviewState extends State<Homeview> {
             ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _greenAccent,
+        tooltip: "Registrar nueva inversión",
         onPressed: () async {
           await Navigator.pushNamed(context, Additem.routeName);
 
@@ -114,7 +141,7 @@ class _HomeviewState extends State<Homeview> {
           Expanded(flex: 2, child: Text("CANT.", style: _headerStyle())),
           Expanded(flex: 2, child: Text("VALOR", style: _headerStyle())),
           Expanded(flex: 2, child: Text("PnL %", style: _headerStyle())),
-          const SizedBox(width: 35), // Espacio para el botón de borrar
+          const SizedBox(width: 35),
         ],
       ),
     );
@@ -123,7 +150,7 @@ class _HomeviewState extends State<Homeview> {
   TextStyle _headerStyle() =>
       TextStyle(color: _headerColor, fontSize: 10, fontWeight: FontWeight.bold);
 
-  /// Fila personalizada por cada activo (Sin Cards, estilo lista limpia).
+  /// Fila personalizada por cada activo .
   Widget _buildItemRow(Item element, InvViewModel vm) {
     Color pnlColor = element.profitPercent >= 0
         ? _greenAccent
@@ -135,74 +162,80 @@ class _HomeviewState extends State<Homeview> {
         color: Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TransactionDetailView(item: element),
+      child: Tooltip(
+        message: "Ver detalles y transacciones de ${element.name}",
+
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TransactionDetailView(item: element),
+            ),
           ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    element.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  if (!element.isSynced)
+
+          title: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      "PENDIENTE SYNC",
-                      style: TextStyle(
-                        color: _greenAccent.withOpacity(0.5),
-                        fontSize: 8,
+                      element.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
                       ),
                     ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                element.totalStocks.toStringAsFixed(2),
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                "${element.currentValue.toStringAsFixed(2)}€",
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                "${element.profitPercent.toStringAsFixed(2)}%",
-                style: TextStyle(
-                  color: pnlColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                    if (!element.isSynced)
+                      Text(
+                        "PENDIENTE SYNC",
+                        style: TextStyle(
+                          color: _greenAccent.withOpacity(0.5),
+                          fontSize: 8,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.delete_outline,
-                color: Colors.redAccent,
-                size: 20,
+              Expanded(
+                flex: 2,
+                child: Text(
+                  element.totalStocks.toStringAsFixed(2),
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
               ),
-              onPressed: () => _confirmDelete(element, vm),
-            ),
-          ],
+              Expanded(
+                flex: 2,
+                child: Text(
+                  "${element.currentValue.toStringAsFixed(2)}€",
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  "${element.profitPercent.toStringAsFixed(2)}%",
+                  style: TextStyle(
+                    color: pnlColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                  size: 20,
+                ),
+                tooltip: "Borrar activo de la cartera",
+                onPressed: () => _confirmDelete(element, vm),
+              ),
+            ],
+          ),
         ),
       ),
     );

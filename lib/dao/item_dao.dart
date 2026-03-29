@@ -183,4 +183,20 @@ class ItemDao {
     final db = await dbHelper.database;
     await db.delete('items', where: 'id = ?', whereArgs: [localId]);
   }
+
+  /// Obtiene los items que el usuario borró estando offline.
+  Future<List<Item>> getPendingDeletions(int userId) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'items',
+      where: 'user_id = ? AND is_deleted = 1',
+      whereArgs: [userId],
+    );
+
+    List<Item> toDelete = [];
+    for (var map in maps) {
+      toDelete.add(Item.fromLocalMap(map, []));
+    }
+    return toDelete;
+  }
 }

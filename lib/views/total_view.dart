@@ -37,7 +37,6 @@ class TotalView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.grey.shade900,
                 borderRadius: BorderRadius.circular(20),
-                // Corregido: Usamos withValues para evitar la depreciación
                 border: Border.all(color: accentGreen.withValues(alpha: 0.2)),
               ),
               child: Column(

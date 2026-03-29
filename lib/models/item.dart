@@ -27,7 +27,7 @@ class Item {
     this.isDeleted = false,
   });
 
-  // -Lógica de Negocio para el ViewModel
+  ///Lógica de Negocio para el ViewModel
   double get totalStocks => transactions.fold(0, (sum, tx) => sum + tx.stocks);
   double get totalInvEur => transactions.fold(0, (sum, tx) => sum + tx.invEur);
   double get currentValue => totalStocks * currentPrice;
@@ -42,7 +42,8 @@ class Item {
     category: json['category'] != null
         ? Category.fromJson(json['category'])
         : Category(id: 0, name: 'Inversión'),
-    currentPrice: (json['currentPrice'] ?? 0.0).toDouble(),
+    currentPrice: (json['currentPrice'] ?? json['current_price'] ?? 0.0)
+        .toDouble(),
     transactions:
         (json['transactions'] as List?)
             ?.map((t) => Transaction.fromJson(t))

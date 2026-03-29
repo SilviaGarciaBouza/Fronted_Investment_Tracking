@@ -24,7 +24,7 @@ class _AdditemState extends State<Additem> {
 
   final Map<String, List<String>> _assetsByCategory = {
     'Acción': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA'],
-    'Criptomoneda': ['BTC/EUR', 'ETH/EUR', 'SOL/EUR', 'ADA/EUR', 'XRP/EUR'],
+    'Criptomoneda': ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'ADAUSDT', 'XRPUSDT'],
     'Divisa': ['EUR/USD', 'EUR/GBP', 'EUR/JPY', 'EUR/CHF'],
   };
 

@@ -20,10 +20,6 @@ class InvViewModel extends ChangeNotifier {
   bool isLoading = false;
   bool isOnline = true;
 
-  // ----------------------------------------------------------------------
-  // AUTENTICACIÓN Y SESIÓN
-  // ----------------------------------------------------------------------
-
   /// Autentica al usuario y prepara la sesión inicial.
   Future<bool> login(String username, String password) async {
     isLoading = true;
@@ -67,10 +63,6 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ----------------------------------------------------------------------
-  // GESTIÓN DE DATOS (Items y Categorías)
-  // ----------------------------------------------------------------------
-
   /// Carga el catálogo de categorías (usado en los dropdowns).
   Future<void> fetchCategories() async {
     if (currentUser == null) return;
@@ -90,10 +82,8 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Intentamos subir lo que se creó offline
       await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
 
-      // 2. Bajamos los datos actualizados del servidor (esto actualiza SQLite)
       itemList = await _itemRepo.fetchUserItems(
         currentUser!.id,
         currentUser!.token,
@@ -101,17 +91,25 @@ class InvViewModel extends ChangeNotifier {
 
       isOnline = true;
     } catch (e) {
-      debugPrint("Modo Offline: Cargando desde base de datos local.");
-      // Si falla la red, cargamos lo que tengamos en SQLite
-      itemList = await _itemRepo.fetchUserItems(currentUser!.id, "");
+      debugPrint("Modo Offline: Activando color rojo y cargando caché.");
+
       isOnline = false;
+
+      itemList = await _itemRepo.getLocalItems(currentUser!.id);
     } finally {
       isLoading = false;
-      notifyListeners(); // 📢 Notificamos a la UI para que se refresque
+      notifyListeners();
+    }
+    for (var item in itemList) {
+      debugPrint("--- ANALIZANDO: ${item.name} ---");
+      debugPrint("Precio Actual: ${item.currentPrice}");
+      debugPrint("Cantidad Total (Stocks): ${item.totalStocks}");
+      debugPrint("Inversión Total: ${item.totalInvEur}");
+      debugPrint("Valor Calculado: ${item.currentValue}");
+      debugPrint("PnL Resultante: ${item.profitEur}");
     }
   }
 
-  /// Alias de fetchItems para el botón de refrescar.
   Future<void> refreshAll() => fetchItems();
 
   /// REGISTRO: Guarda un ítem y fuerza la actualización de la lista.
@@ -135,7 +133,6 @@ class InvViewModel extends ChangeNotifier {
         isSynced: false,
       );
 
-      // Guardamos (el repositorio decide si va a MariaDB o SQLite)
       await _itemRepo.saveItem(
         newItem,
         stocks,
@@ -144,13 +141,11 @@ class InvViewModel extends ChangeNotifier {
         currentUser!.token,
       );
 
-      // 🚨 IMPORTANTE: Tras guardar, volvemos a pedir la lista
-      // Esto asegura que el nuevo ítem aparezca en la pantalla de inicio.
       await fetchItems();
 
       return isOnline
-          ? "Inversión guardada ✅"
-          : "Guardado localmente (Sin conexión) ☁️";
+          ? "Inversión guardada "
+          : "Guardado localmente (Sin conexión) ";
     } catch (e) {
       return "Error al guardar: $e";
     } finally {
