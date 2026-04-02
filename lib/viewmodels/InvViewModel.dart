@@ -45,7 +45,27 @@ class InvViewModel extends ChangeNotifier {
   }
 
   /// Verifica si hay una sesión activa guardada al arrancar la App.
+  /* Future<bool> checkLocalSession() async {
+    final savedUser = await _userDao.getUser();
+    if (savedUser != null) {
+      currentUser = savedUser;
+      await fetchItems();
+      return true;
+    }
+    return false;
+  }*/
   Future<bool> checkLocalSession() async {
+    try {
+      final response = await _authRepo.checkConnection().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => true,
+      );
+      isOnline = response;
+    } catch (_) {
+      isOnline = true;
+    }
+    notifyListeners();
+
     final savedUser = await _userDao.getUser();
     if (savedUser != null) {
       currentUser = savedUser;

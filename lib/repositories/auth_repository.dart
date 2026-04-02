@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import '../models/user.dart';
 import '../service/api_service.dart';
 import '../dao/user_dao.dart';
@@ -38,6 +41,19 @@ class AuthRepository {
       return data != null;
     } catch (e) {
       print("Error en Registro Repository: $e");
+      return false;
+    }
+  }
+
+  ///COmprobacion de la conexion con el servidor
+  Future<bool> checkConnection() async {
+    try {
+      final url = Uri.parse("${_apiService.baseUrl}/users/health");
+      final response = await http.get(url).timeout(const Duration(seconds: 2));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error de conexión real: $e");
       return false;
     }
   }
