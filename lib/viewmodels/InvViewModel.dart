@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as _apiService;
 import '../models/item.dart';
 import '../models/user.dart';
 import '../models/category.dart';
@@ -167,6 +168,18 @@ class InvViewModel extends ChangeNotifier {
     await fetchItems();
 
     return success ? "Eliminado" : "Marcado para borrar (Offline)";
+  }
+
+  ///Método para registraar un nuevo usuario
+  Future<bool> register(String user, String pass, String email) async {
+    isLoading = true;
+    notifyListeners();
+
+    final success = await _authRepo.register(user, pass, email);
+
+    isLoading = false;
+    notifyListeners();
+    return success;
   }
 
   double get totalCurrentValue =>

@@ -3,6 +3,7 @@ import 'package:investment_tracking/views/HomeView.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/views/RegisterView.dart';
 
 /// Pantalla de autenticación inicial.
 class LoginView extends StatefulWidget {
@@ -105,6 +106,42 @@ class _LoginViewState extends State<LoginView> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
+
+            const SizedBox(height: 15),
+            Center(
+              child: TextButton(
+                onPressed: vm.isOnline
+                    ? () => Navigator.pushNamed(context, RegisterView.routeName)
+                    : null,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "¿No tienes cuenta? Regístrate aquí",
+                      style: TextStyle(
+                        color: vm.isOnline
+                            ? Colors.white.withOpacity(0.7)
+                            : Colors.white24,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (!vm.isOnline)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          "(Requiere conexión)",
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(flex: 3),
           ],
         ),
       ),

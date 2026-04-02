@@ -29,11 +29,16 @@ class AuthRepository {
 
   /// Registra un nuevo usuario en MariaDB.
   Future<bool> register(String username, String password, String email) async {
-    final data = await _apiService.post('/users/register', {
-      "username": username,
-      "password": password,
-      "email": email,
-    });
-    return data != null;
+    try {
+      final data = await _apiService.post('/users/register', {
+        "username": username,
+        "password": password,
+        "email": email,
+      });
+      return data != null;
+    } catch (e) {
+      print("Error en Registro Repository: $e");
+      return false;
+    }
   }
 }
