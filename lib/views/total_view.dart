@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
+import '../utils/app_strings.dart';
 
 class TotalView extends StatelessWidget {
   const TotalView({super.key});
@@ -8,23 +9,22 @@ class TotalView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final invViewmodel = Provider.of<InvViewModel>(context);
+    final vm = Provider.of<InvViewModel>(context);
+    final lang = vm.currentLocale;
+    final primary = Theme.of(context).primaryColor;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
 
-    const Color primaryDark = Colors.black;
-    const Color accentGreen = Colors.lightGreenAccent;
-    const Color textColor = Colors.white;
-
-    Color getNplColor(double val) => val >= 0 ? accentGreen : Colors.redAccent;
+    Color getNplColor(double val) => val >= 0 ? primary : Colors.redAccent;
 
     return Scaffold(
-      backgroundColor: primaryDark,
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: primaryDark,
-        foregroundColor: accentGreen,
+        backgroundColor: bg,
+        foregroundColor: primary,
         elevation: 0,
-        title: const Text(
-          "RESUMEN GENERAL",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          AppStrings.get('total_res', lang),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -35,24 +35,26 @@ class TotalView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: Colors.grey.shade900,
+                color: vm.isDarkMode
+                    ? Colors.grey.shade900
+                    : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: accentGreen.withValues(alpha: 0.2)),
+                border: Border.all(color: primary.withOpacity(0.2)),
               ),
               child: Column(
                 children: [
                   Text(
-                    "VALOR TOTAL",
+                    AppStrings.get('total_val', lang),
                     style: TextStyle(
-                      color: accentGreen.withValues(alpha: 0.6),
+                      color: primary.withOpacity(0.6),
                       fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '${invViewmodel.totalCurrentValue.toStringAsFixed(2)}€',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    '${vm.totalCurrentValue.toStringAsFixed(2)}€',
+                    style: TextStyle(
+                      color: vm.isDarkMode ? Colors.white : Colors.black,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
@@ -61,21 +63,20 @@ class TotalView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-
-            _buildInfoTile(
-              "Inversión Inicial",
-              '${invViewmodel.totalInvestment.toStringAsFixed(2)}€',
-              Colors.white,
+            _infoTile(
+              AppStrings.get('init_inv', lang),
+              '${vm.totalInvestment.toStringAsFixed(2)}€',
+              vm.isDarkMode ? Colors.white : Colors.black,
             ),
-            _buildInfoTile(
-              "Ganancia/Pérdida Absoluta",
-              '${invViewmodel.totalPnL.toStringAsFixed(2)}€',
-              getNplColor(invViewmodel.totalPnL),
+            _infoTile(
+              AppStrings.get('abs_pnl', lang),
+              '${vm.totalPnL.toStringAsFixed(2)}€',
+              getNplColor(vm.totalPnL),
             ),
-            _buildInfoTile(
-              "Rendimiento Porcentual",
-              '${invViewmodel.totalPnLPercent.toStringAsFixed(2)}%',
-              getNplColor(invViewmodel.totalPnLPercent),
+            _infoTile(
+              AppStrings.get('perc_pnl', lang),
+              '${vm.totalPnLPercent.toStringAsFixed(2)}%',
+              getNplColor(vm.totalPnLPercent),
             ),
           ],
         ),
@@ -83,7 +84,7 @@ class TotalView extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(String label, String value, Color valColor) {
+  Widget _infoTile(String label, String value, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
@@ -93,7 +94,7 @@ class TotalView extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: valColor,
+              color: color,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

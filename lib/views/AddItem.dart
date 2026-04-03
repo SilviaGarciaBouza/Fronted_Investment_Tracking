@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/utils/app_strings.dart';
 
 class Additem extends StatefulWidget {
   const Additem({super.key});
@@ -11,10 +12,6 @@ class Additem extends StatefulWidget {
 }
 
 class _AdditemState extends State<Additem> {
-  final Color _black = Colors.black;
-  final Color _greenAccent = Colors.lightGreenAccent;
-  final Color _fieldColor = Colors.grey.shade900;
-
   final TextEditingController _qtyController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
@@ -51,7 +48,6 @@ class _AdditemState extends State<Additem> {
   bool _isFormValid() {
     final qty = double.tryParse(_qtyController.text) ?? 0;
     final price = double.tryParse(_priceController.text) ?? 0;
-
     return _selectedCatId != null &&
         _selectedAssetName != null &&
         qty > 0 &&
@@ -61,17 +57,26 @@ class _AdditemState extends State<Additem> {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<InvViewModel>(context);
+    final lang = vm.currentLocale;
     final isValid = _isFormValid();
 
+    final Color backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+    final Color primaryColor = Theme.of(context).primaryColor;
+    final Color textColor = vm.isDarkMode ? Colors.white : Colors.black;
+    final Color fieldColor = vm.isDarkMode
+        ? Colors.grey.shade900
+        : Colors.grey.shade200;
+
     return Scaffold(
-      backgroundColor: _black,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: _black,
+        backgroundColor: backgroundColor,
         elevation: 0,
+        iconTheme: IconThemeData(color: primaryColor),
         title: Text(
-          "NUEVA INVERSIÓN",
+          AppStrings.get('new_inv', lang),
           style: TextStyle(
-            color: _greenAccent,
+            color: primaryColor,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.5,
           ),
@@ -82,19 +87,24 @@ class _AdditemState extends State<Additem> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _label("1. CATEGORÍA"),
+            _label(AppStrings.get('cat_label', lang), primaryColor),
             const SizedBox(height: 10),
             DropdownButtonFormField<int>(
-              dropdownColor: _fieldColor,
+              dropdownColor: fieldColor,
               value: _selectedCatId,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textColor),
               decoration: _inputDecoration(
-                "Selecciona categoría",
+                AppStrings.get('cat_hint', lang),
                 Icons.category_outlined,
+                primaryColor,
+                fieldColor,
               ),
               items: vm.categories
                   .map(
-                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                    (c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text(c.name, style: TextStyle(color: textColor)),
+                    ),
                   )
                   .toList(),
               onChanged: (val) {
@@ -110,26 +120,34 @@ class _AdditemState extends State<Additem> {
 
             const SizedBox(height: 25),
 
-            _label("2. ACTIVO"),
+            _label(AppStrings.get('asset_label', lang), primaryColor),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              dropdownColor: _fieldColor,
+              dropdownColor: fieldColor,
               value: _selectedAssetName,
-              disabledHint: const Text(
-                "Elige categoría primero",
-                style: TextStyle(color: Colors.grey),
+              disabledHint: Text(
+                // //AA Hint deshabilitado traducido
+                AppStrings.get('asset_wait', lang),
+                style: const TextStyle(color: Colors.grey),
               ),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textColor),
               decoration: _inputDecoration(
-                "Selecciona activo",
+                AppStrings.get('asset_hint', lang),
                 Icons.auto_graph,
+                primaryColor,
+                fieldColor,
               ),
               items: _selectedCategoryName == null
                   ? null
                   : (_assetsByCategory[_selectedCategoryName] ?? [])
                         .map(
-                          (name) =>
-                              DropdownMenuItem(value: name, child: Text(name)),
+                          (name) => DropdownMenuItem(
+                            value: name,
+                            child: Text(
+                              name,
+                              style: TextStyle(color: textColor),
+                            ),
+                          ),
                         )
                         .toList(),
               onChanged: (val) => setState(() => _selectedAssetName = val),
@@ -143,9 +161,15 @@ class _AdditemState extends State<Additem> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _label("CANTIDAD (> 0)"),
+                      _label(AppStrings.get('qty_label', lang), primaryColor),
                       const SizedBox(height: 10),
-                      _textField(_qtyController, "Ej: 0.5"),
+                      _textField(
+                        _qtyController,
+                        "Ej: 0.5",
+                        primaryColor,
+                        fieldColor,
+                        textColor,
+                      ),
                     ],
                   ),
                 ),
@@ -154,9 +178,15 @@ class _AdditemState extends State<Additem> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _label("PRECIO (€ > 0)"),
+                      _label(AppStrings.get('price_label', lang), primaryColor),
                       const SizedBox(height: 10),
-                      _textField(_priceController, "0.00 €"),
+                      _textField(
+                        _priceController,
+                        "0.00 €",
+                        primaryColor,
+                        fieldColor,
+                        textColor,
+                      ),
                     ],
                   ),
                 ),
@@ -166,19 +196,21 @@ class _AdditemState extends State<Additem> {
             const SizedBox(height: 50),
 
             vm.isLoading
-                ? Center(child: CircularProgressIndicator(color: _greenAccent))
+                ? Center(child: CircularProgressIndicator(color: primaryColor))
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _greenAccent,
-                      foregroundColor: _black,
-                      disabledBackgroundColor: Colors.grey.shade800,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      backgroundColor: primaryColor,
+                      foregroundColor: vm.isDarkMode
+                          ? Colors.black
+                          : Colors.white,
+                      disabledBackgroundColor: vm.isDarkMode
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade300,
                       minimumSize: const Size(double.infinity, 60),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    // Si el formulario no es válido, onPressed es NULL (botón desactivado)
                     onPressed: isValid
                         ? () async {
                             await vm.saveNewItem(
@@ -191,7 +223,9 @@ class _AdditemState extends State<Additem> {
                           }
                         : null,
                     child: Text(
-                      isValid ? "CONFIRMAR OPERACIÓN" : "COMPLETA LOS DATOS",
+                      isValid
+                          ? AppStrings.get('btn_confirm', lang)
+                          : AppStrings.get('btn_incomplete', lang),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -204,35 +238,42 @@ class _AdditemState extends State<Additem> {
     );
   }
 
-  Widget _label(String text) => Text(
+  Widget _label(String text, Color color) => Text(
     text,
-    style: TextStyle(
-      color: _greenAccent,
-      fontSize: 11,
-      fontWeight: FontWeight.bold,
+    style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+  );
+
+  InputDecoration _inputDecoration(
+    String hint,
+    IconData icon,
+    Color primary,
+    Color field,
+  ) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+    prefixIcon: Icon(icon, color: primary),
+    filled: true,
+    fillColor: field,
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(color: primary),
     ),
   );
 
-  InputDecoration _inputDecoration(String hint, IconData icon) =>
-      InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: _greenAccent),
-        filled: true,
-        fillColor: _fieldColor,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade800),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: _greenAccent),
-        ),
-      );
-
-  Widget _textField(TextEditingController controller, String hint) => TextField(
+  Widget _textField(
+    TextEditingController controller,
+    String hint,
+    Color primary,
+    Color field,
+    Color text,
+  ) => TextField(
     controller: controller,
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-    style: const TextStyle(color: Colors.white),
-    decoration: _inputDecoration(hint, Icons.edit_note),
+    style: TextStyle(color: text),
+    decoration: _inputDecoration(hint, Icons.edit_note, primary, field),
   );
 }

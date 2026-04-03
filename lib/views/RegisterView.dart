@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
+import '../utils/app_strings.dart';
 
 class RegisterView extends StatefulWidget {
   static const routeName = '/register';
   const RegisterView({super.key});
-
   @override
   State<RegisterView> createState() => _RegisterViewState();
 }
@@ -14,155 +14,137 @@ class _RegisterViewState extends State<RegisterView> {
   final _userController = TextEditingController();
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
-  final Color _accentGreen = Colors.lightGreenAccent;
 
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<InvViewModel>(context);
+    final lang = vm.currentLocale;
+    final primary = Theme.of(context).primaryColor;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: _accentGreen),
+        backgroundColor: bg,
+        iconTheme: IconThemeData(color: primary),
         elevation: 0,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Column(
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: Center(
-                          child: Text(
-                            "NUEVA CUENTA",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _accentGreen,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 4,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const Spacer(flex: 1),
-
-                      Column(
-                        children: [
-                          _buildTextField(
-                            _userController,
-                            "Usuario",
-                            Icons.person_outline,
-                          ),
-                          const SizedBox(height: 25),
-                          _buildTextField(
-                            _emailController,
-                            "Email",
-                            Icons.email_outlined,
-                          ),
-                          const SizedBox(height: 25),
-                          _buildTextField(
-                            _passController,
-                            "Contraseña",
-                            Icons.lock_outline,
-                            isPass: true,
-                          ),
-                        ],
-                      ),
-
-                      const Expanded(flex: 2, child: SizedBox()),
-
-                      vm.isLoading
-                          ? CircularProgressIndicator(color: _accentGreen)
-                          : Flexible(
-                              flex: 1,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _accentGreen,
-                                  foregroundColor: Colors.black,
-                                  minimumSize: const Size(double.infinity, 60),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                ),
-                                onPressed: () => _handleRegister(vm),
-                                child: const Text(
-                                  "CREAR CUENTA",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                      const Spacer(flex: 1),
-                    ],
-                  ),
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Text(
+              AppStrings.get('reg_title', lang),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: primary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 4,
               ),
             ),
-          );
-        },
+            const SizedBox(height: 50),
+            _buildField(
+              _userController,
+              AppStrings.get('user', lang),
+              Icons.person_outline,
+              primary,
+              vm.isDarkMode,
+            ),
+            const SizedBox(height: 25),
+            _buildField(
+              _emailController,
+              AppStrings.get('email', lang),
+              Icons.email_outlined,
+              primary,
+              vm.isDarkMode,
+            ),
+            const SizedBox(height: 25),
+            _buildField(
+              _passController,
+              AppStrings.get('pass', lang),
+              Icons.lock_outline,
+              primary,
+              vm.isDarkMode,
+              isPass: true,
+            ),
+            const SizedBox(height: 60),
+            vm.isLoading
+                ? CircularProgressIndicator(color: primary)
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary,
+                      foregroundColor: vm.isDarkMode
+                          ? Colors.black
+                          : Colors.white,
+                      minimumSize: const Size(double.infinity, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    onPressed: () => _handleRegister(vm, lang),
+                    child: Text(
+                      AppStrings.get('btn_create', lang),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
+  Widget _buildField(
+    TextEditingController ctrl,
     String label,
-    IconData icon, {
+    IconData icon,
+    Color color,
+    bool isDark, {
     bool isPass = false,
   }) {
     return TextField(
-      controller: controller,
+      controller: ctrl,
       obscureText: isPass,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.lightGreenAccent),
-        labelStyle: const TextStyle(color: Colors.white60),
+        prefixIcon: Icon(icon, color: color),
+        labelStyle: TextStyle(color: isDark ? Colors.white60 : Colors.black54),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white10),
+          borderSide: BorderSide(color: color.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _accentGreen),
+          borderSide: BorderSide(color: color),
           borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
   }
 
-  void _handleRegister(InvViewModel vm) async {
+  void _handleRegister(InvViewModel vm, String lang) async {
     if (_userController.text.isEmpty ||
         _passController.text.isEmpty ||
         _emailController.text.isEmpty) {
-      _showMsg("Todos los campos son obligatorios");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.get('fields_req', lang))),
+      );
       return;
     }
-
     final success = await vm.register(
       _userController.text.trim(),
       _passController.text.trim(),
       _emailController.text.trim(),
     );
-
     if (mounted && success) {
-      _showMsg("¡Usuario registrado!");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.get('reg_success', lang))),
+      );
       Navigator.pop(context);
     }
-  }
-
-  void _showMsg(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 }

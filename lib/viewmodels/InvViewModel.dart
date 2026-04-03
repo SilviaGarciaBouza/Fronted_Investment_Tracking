@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as _apiService;
+import 'package:investment_tracking/service/SettingsService.dart';
 import '../models/item.dart';
 import '../models/user.dart';
 import '../models/category.dart';
@@ -15,6 +18,13 @@ class InvViewModel extends ChangeNotifier {
   final CategoryRepository _categoryRepo = CategoryRepository();
   final UserDao _userDao = UserDao();
 
+  final SettingsService _settings = SettingsService();
+
+  bool _isDarkMode = true;
+  String _currentLocale = 'es';
+
+  bool get isDarkMode => _isDarkMode;
+  String get currentLocale => _currentLocale;
   User? currentUser;
   List<Item> itemList = [];
   List<Category> categories = [];
@@ -200,6 +210,40 @@ class InvViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
     return success;
+  }
+
+  Future<void> initSettings() async {
+    final savedTheme = await _settings.getTheme();
+    final savedLang = await _settings.getLanguage();
+
+    /// Si no hay tema guardado, miramos el brillo del sistema (Windows/Linux/Android)
+    if (savedTheme == null) {
+      _isDarkMode =
+          PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+    } else {
+      _isDarkMode = savedTheme;
+    }
+
+    /// Si no hay idioma, miramos el del sistema
+    if (savedLang == null) {
+      String sysLang = PlatformDispatcher.instance.locale.languageCode;
+      _currentLocale = (['es', 'gl', 'en'].contains(sysLang)) ? sysLang : 'es';
+    } else {
+      _currentLocale = savedLang;
+    }
+    notifyListeners();
+  }
+
+  void toggleTheme() async {
+    _isDarkMode = !_isDarkMode;
+    await _settings.saveTheme(_isDarkMode);
+    notifyListeners();
+  }
+
+  void setLanguage(String code) async {
+    _currentLocale = code;
+    await _settings.saveLanguage(code);
+    notifyListeners();
   }
 
   double get totalCurrentValue =>
