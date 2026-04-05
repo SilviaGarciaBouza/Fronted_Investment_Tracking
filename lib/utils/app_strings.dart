@@ -27,9 +27,14 @@ class AppStrings {
       'offline_tooltip': 'Modo local: Sin conexión',
       'syncing_msg': 'Sincronizando con MariaDB...',
       'offline_msg': 'Modo Offline: Usando base de datos local',
-      'delete_title': '¿Eliminar?',
+      'delete_title': '¿Eliminar ',
       'cancel': 'CANCELAR',
       'delete': 'BORRAR',
+
+      'tab_all': 'TODO',
+      'tab_stocks': 'ACCIONES',
+      'tab_cryptos': 'CRIPTOS',
+      'tab_currencies': 'DIVISAS',
 
       /// Add Item
       'new_inv': 'NUEVA INVERSIÓN',
@@ -76,9 +81,15 @@ class AppStrings {
       'offline_tooltip': 'Modo local: Sen conexión',
       'syncing_msg': 'Sincronizando con MariaDB...',
       'offline_msg': 'Modo Offline: Usando base de datos local',
-      'delete_title': 'Eliminar?',
+      'delete_title': 'Eliminar ',
       'cancel': 'CANCELAR',
       'delete': 'BORRAR',
+
+      'tab_all': 'TODO',
+      'tab_stocks': 'ACCIÓN S',
+      'tab_cryptos': 'CRIPTOS',
+      'tab_currencies': 'DIVISAS',
+
       'new_inv': 'NOVA INVERSIÓN',
       'cat_label': '1. CATEGORÍA',
       'cat_hint': 'Selecciona categoría',
@@ -121,9 +132,15 @@ class AppStrings {
       'offline_tooltip': 'Offline mode',
       'syncing_msg': 'Syncing with MariaDB...',
       'offline_msg': 'Offline Mode: Using local database',
-      'delete_title': 'Delete?',
+      'delete_title': 'Delete ',
       'cancel': 'CANCEL',
       'delete': 'DELETE',
+
+      'tab_all': 'ALL',
+      'tab_stocks': 'STOCKS',
+      'tab_cryptos': 'CRYPTOS',
+      'tab_currencies': 'FOREX',
+
       'new_inv': 'NEW INVESTMENT',
       'cat_label': '1. CATEGORY',
       'cat_hint': 'Select category',

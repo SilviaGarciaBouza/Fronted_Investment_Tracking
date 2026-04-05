@@ -116,14 +116,17 @@ class ItemDao {
   Future<List<Item>> getItems(int userId) async {
     final db = await dbHelper.database;
 
-    final List<Map<String, dynamic>> itemMaps = await db.query(
-      'items',
-      where: 'user_id = ? AND is_deleted = 0',
-      whereArgs: [userId],
+    final List<Map<String, dynamic>> itemMaps = await db.rawQuery(
+      '''
+    SELECT items.*, categories.name as category_name 
+    FROM items 
+    INNER JOIN categories ON items.category_id = categories.id
+    WHERE items.user_id = ? AND items.is_deleted = 0
+  ''',
+      [userId],
     );
 
     List<Item> reconstruidos = [];
-
     for (var map in itemMaps) {
       final List<Map<String, dynamic>> txMaps = await db.query(
         'transactions',
@@ -137,7 +140,6 @@ class ItemDao {
 
       reconstruidos.add(Item.fromLocalMap(map, transactions));
     }
-
     return reconstruidos;
   }
 

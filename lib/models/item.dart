@@ -60,7 +60,10 @@ class Item {
     id: map['id'],
     serverId: map['server_id'],
     name: map['name'],
-    category: Category(id: map['category_id'] ?? 0, name: 'Cargando...'),
+    category: Category(
+      id: map['category_id'] ?? 0,
+      name: map['category_name'] ?? 'Inversión',
+    ),
     currentPrice: (map['current_price'] ?? 0.0).toDouble(),
     isSynced: map['is_synced'] == 1,
     isDeleted: map['is_deleted'] == 1,
@@ -78,4 +81,6 @@ class Item {
     'is_synced': isSynced ? 1 : 0,
     'is_deleted': isDeleted ? 1 : 0,
   };
+
+  String get categoryName => category.name;
 }
