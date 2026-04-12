@@ -135,11 +135,12 @@ class _LoginViewState extends State<LoginView> {
                                   _userController.text,
                                   _passController.text,
                                 )) {
-                                  if (mounted)
+                                  if (mounted) {
                                     Navigator.pushReplacementNamed(
                                       context,
                                       Homeview.routeName,
                                     );
+                                  }
                                 }
                               },
                               child: Text(

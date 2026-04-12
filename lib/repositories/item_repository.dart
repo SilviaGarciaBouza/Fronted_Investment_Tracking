@@ -22,7 +22,7 @@ class ItemRepository {
       return await _itemDao.getItems(userId);
     } catch (e) {
       debugPrint("Modo Offline: No se pudo refrescar desde el servidor.");
-      throw e;
+      rethrow;
     }
   }
 

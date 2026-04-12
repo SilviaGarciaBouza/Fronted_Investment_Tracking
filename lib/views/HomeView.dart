@@ -86,8 +86,9 @@ class _HomeviewState extends State<Homeview> {
               icon: const Icon(Icons.logout, color: Colors.redAccent),
               onPressed: () async {
                 await vm.logout();
-                if (context.mounted)
+                if (context.mounted) {
                   Navigator.pushReplacementNamed(context, LoginView.routeName);
+                }
               },
             ),
           ],
@@ -96,7 +97,6 @@ class _HomeviewState extends State<Homeview> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // //AA PESTAÑAS ESTILO BOTÓN (Imagen 2)
               Container(
                 height: 45,
                 decoration: BoxDecoration(
@@ -126,7 +126,6 @@ class _HomeviewState extends State<Homeview> {
               ),
               const SizedBox(height: 20),
 
-              // //AA CAJA CONTENEDORA CON BORDES (Imagen 2)
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -205,7 +204,6 @@ class _HomeviewState extends State<Homeview> {
     Color hColor,
     String? filter,
   ) {
-    // //AA Ahora 'categoryName' ya existe gracias al getter en Item.dart
     final list = filter == null
         ? vm.itemList
         : vm.itemList.where((i) => i.categoryName == filter).toList();

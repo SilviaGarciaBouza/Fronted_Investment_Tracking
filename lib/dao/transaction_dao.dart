@@ -1,5 +1,4 @@
 import 'package:investment_tracking/database/database_helper.dart';
-import 'package:sqflite/sqflite.dart' hide Transaction;
 import '../models/transaction.dart';
 
 /// Gestión de persistencia para las operaciones financieras (compras/ventas).

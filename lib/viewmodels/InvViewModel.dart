@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as _apiService;
+import 'package:http/http.dart' as apiService;
 import 'package:investment_tracking/service/SettingsService.dart';
 import '../models/item.dart';
 import '../models/user.dart';
@@ -216,7 +216,7 @@ class InvViewModel extends ChangeNotifier {
     final savedTheme = await _settings.getTheme();
     final savedLang = await _settings.getLanguage();
 
-    /// Si no hay tema guardado, miramos el brillo del sistema (Windows/Linux/Android)
+    // Si no hay tema guardado, miramos el brillo del sistema (Windows/Linux/Android)
     if (savedTheme == null) {
       _isDarkMode =
           PlatformDispatcher.instance.platformBrightness == Brightness.dark;
@@ -224,7 +224,7 @@ class InvViewModel extends ChangeNotifier {
       _isDarkMode = savedTheme;
     }
 
-    /// Si no hay idioma, miramos el del sistema
+    // Si no hay idioma, miramos el del sistema
     if (savedLang == null) {
       String sysLang = PlatformDispatcher.instance.locale.languageCode;
       _currentLocale = (['es', 'gl', 'en'].contains(sysLang)) ? sysLang : 'es';

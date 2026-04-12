@@ -91,7 +91,7 @@ class _AdditemState extends State<Additem> {
             const SizedBox(height: 10),
             DropdownButtonFormField<int>(
               dropdownColor: fieldColor,
-              value: _selectedCatId,
+              initialValue: _selectedCatId,
               style: TextStyle(color: textColor),
               decoration: _inputDecoration(
                 AppStrings.get('cat_hint', lang),
@@ -124,7 +124,7 @@ class _AdditemState extends State<Additem> {
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               dropdownColor: fieldColor,
-              value: _selectedAssetName,
+              initialValue: _selectedAssetName,
               disabledHint: Text(
                 // //AA Hint deshabilitado traducido
                 AppStrings.get('asset_wait', lang),
