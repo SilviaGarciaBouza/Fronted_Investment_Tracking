@@ -6,7 +6,7 @@ import 'package:investment_tracking/views/AddItem.dart';
 import 'package:investment_tracking/views/total_view.dart';
 import 'package:investment_tracking/views/TransactionDetailView.dart';
 import 'package:investment_tracking/views/LoginView.dart';
-import '../models/item.dart';
+import '../models/transaction.dart'; // Importante: ahora trabajamos con Transaction
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
@@ -45,12 +45,20 @@ class _HomeviewState extends State<Homeview> {
         appBar: AppBar(
           backgroundColor: backgroundColor,
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
-              color: vm.isOnline ? primaryColor : Colors.redAccent,
-            ),
-            onPressed: () => vm.fetchItems(),
+          leading: Consumer<InvViewModel>(
+            builder: (context, vm, child) {
+              return IconButton(
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Icon(
+                    vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
+                    key: ValueKey(vm.isOnline),
+                    color: vm.isOnline ? primaryColor : Colors.redAccent,
+                  ),
+                ),
+                onPressed: () => vm.fetchItems(),
+              );
+            },
           ),
           title: Text(
             AppStrings.get('portfolio', lang),
@@ -125,7 +133,6 @@ class _HomeviewState extends State<Homeview> {
                 ),
               ),
               const SizedBox(height: 20),
-
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -140,7 +147,7 @@ class _HomeviewState extends State<Homeview> {
                     borderRadius: BorderRadius.circular(15),
                     child: TabBarView(
                       children: [
-                        _buildTabContent(
+                        _buildTransactionTab(
                           vm,
                           lang,
                           primaryColor,
@@ -148,7 +155,7 @@ class _HomeviewState extends State<Homeview> {
                           headerColor,
                           null,
                         ),
-                        _buildTabContent(
+                        _buildTransactionTab(
                           vm,
                           lang,
                           primaryColor,
@@ -156,7 +163,7 @@ class _HomeviewState extends State<Homeview> {
                           headerColor,
                           'Acción',
                         ),
-                        _buildTabContent(
+                        _buildTransactionTab(
                           vm,
                           lang,
                           primaryColor,
@@ -164,7 +171,7 @@ class _HomeviewState extends State<Homeview> {
                           headerColor,
                           'Criptomoneda',
                         ),
-                        _buildTabContent(
+                        _buildTransactionTab(
                           vm,
                           lang,
                           primaryColor,
@@ -196,7 +203,7 @@ class _HomeviewState extends State<Homeview> {
     );
   }
 
-  Widget _buildTabContent(
+  Widget _buildTransactionTab(
     InvViewModel vm,
     String lang,
     Color primary,
@@ -204,16 +211,25 @@ class _HomeviewState extends State<Homeview> {
     Color hColor,
     String? filter,
   ) {
-    final list = filter == null
-        ? vm.itemList
-        : vm.itemList.where((i) => i.categoryName == filter).toList();
+    // 1. APLANADO DE TRANSACCIONES: Sacamos las transacciones de los items filtrados
+    List<Transaction> transactions = [];
+    for (var item in vm.itemList) {
+      if (filter == null || item.categoryName == filter) {
+        for (var tx in item.transactions) {
+          transactions.add(tx);
+        }
+      }
+    }
+
+    // 2. ORDENACIÓN: La más reciente primero
+    transactions.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
 
     return vm.isLoading && vm.itemList.isEmpty
         ? Center(child: CircularProgressIndicator(color: primary))
         : RefreshIndicator(
             color: primary,
             onRefresh: () => vm.fetchItems(),
-            child: list.isEmpty
+            child: transactions.isEmpty
                 ? _buildEmptyState(hColor, lang)
                 : Column(
                     children: [
@@ -222,9 +238,9 @@ class _HomeviewState extends State<Homeview> {
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.all(8),
-                          itemCount: list.length,
-                          itemBuilder: (context, index) => _buildItemRow(
-                            list[index],
+                          itemCount: transactions.length,
+                          itemBuilder: (context, index) => _buildTransactionRow(
+                            transactions[index],
                             vm,
                             lang,
                             primary,
@@ -236,8 +252,6 @@ class _HomeviewState extends State<Homeview> {
                   ),
           );
   }
-
-  // ... (Sigue igual con _buildHeader, _buildItemRow, _confirmDelete y _buildEmptyState)
 
   Widget _buildHeader(String lang, Color color) {
     return Padding(
@@ -253,6 +267,10 @@ class _HomeviewState extends State<Homeview> {
           ),
           Expanded(
             flex: 2,
+            child: Text("FECHA", style: _headerStyle(color)),
+          ), // Etiqueta nueva
+          Expanded(
+            flex: 2,
             child: Text(
               AppStrings.get('qty', lang),
               style: _headerStyle(color),
@@ -260,18 +278,8 @@ class _HomeviewState extends State<Homeview> {
           ),
           Expanded(
             flex: 2,
-            child: Text(
-              AppStrings.get('value', lang),
-              style: _headerStyle(color),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              AppStrings.get('pnl', lang),
-              style: _headerStyle(color),
-            ),
-          ),
+            child: Text("INVER.", style: _headerStyle(color)),
+          ), // Inversión de esa TX
         ],
       ),
     );
@@ -280,14 +288,18 @@ class _HomeviewState extends State<Homeview> {
   TextStyle _headerStyle(Color color) =>
       TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold);
 
-  Widget _buildItemRow(
-    Item element,
+  Widget _buildTransactionRow(
+    Transaction tx,
     InvViewModel vm,
     String lang,
     Color primary,
     Color text,
   ) {
-    Color pnlColor = element.profitPercent >= 0 ? primary : Colors.redAccent;
+    // Buscamos el nombre del activo al que pertenece esta transacción
+    final parentItem = vm.itemList.firstWhere(
+      (item) => item.transactions.contains(tx),
+    );
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
@@ -299,15 +311,15 @@ class _HomeviewState extends State<Homeview> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TransactionDetailView(item: element),
-          ),
+            builder: (context) => TransactionDetailView(item: parentItem),
+          ), // Reutilizamos tu vista de detalle
         ),
         title: Row(
           children: [
             Expanded(
               flex: 3,
               child: Text(
-                element.name,
+                parentItem.name,
                 style: TextStyle(
                   color: text,
                   fontWeight: FontWeight.bold,
@@ -318,23 +330,23 @@ class _HomeviewState extends State<Homeview> {
             Expanded(
               flex: 2,
               child: Text(
-                element.totalStocks.toStringAsFixed(2),
+                "${tx.purchaseDate.day}/${tx.purchaseDate.month}",
+                style: TextStyle(color: text, fontSize: 11),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                tx.stocks.toStringAsFixed(2),
                 style: TextStyle(color: text, fontSize: 12),
               ),
             ),
             Expanded(
               flex: 2,
               child: Text(
-                "${element.currentValue.toStringAsFixed(2)}€",
-                style: TextStyle(color: text, fontSize: 12),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                "${element.profitPercent.toStringAsFixed(2)}%",
+                "${tx.invEur.toStringAsFixed(2)}€",
                 style: TextStyle(
-                  color: pnlColor,
+                  color: primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -346,7 +358,13 @@ class _HomeviewState extends State<Homeview> {
                 color: Colors.redAccent,
                 size: 18,
               ),
-              onPressed: () => _confirmDelete(element, vm, lang, text),
+              onPressed: () => _confirmDeleteTransaction(
+                tx,
+                parentItem.name,
+                vm,
+                lang,
+                text,
+              ),
             ),
           ],
         ),
@@ -354,8 +372,9 @@ class _HomeviewState extends State<Homeview> {
     );
   }
 
-  void _confirmDelete(
-    Item item,
+  void _confirmDeleteTransaction(
+    Transaction tx,
+    String assetName,
     InvViewModel vm,
     String lang,
     Color textColor,
@@ -365,8 +384,8 @@ class _HomeviewState extends State<Homeview> {
       builder: (context) => AlertDialog(
         backgroundColor: vm.isDarkMode ? Colors.grey.shade900 : Colors.white,
         title: Text(
-          "${AppStrings.get('delete_title', lang)} ${item.name}?",
-          style: TextStyle(color: textColor),
+          "¿Borrar movimiento de $assetName?",
+          style: TextStyle(color: textColor, fontSize: 16),
         ),
         actions: [
           TextButton(
@@ -377,9 +396,12 @@ class _HomeviewState extends State<Homeview> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              vm.deleteItem(item.id!, item.serverId);
-              Navigator.pop(context);
+            onPressed: () async {
+              await vm.deleteTransaction(tx.id!, tx.serverId);
+
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             child: Text(
               AppStrings.get('delete', lang),
@@ -399,11 +421,7 @@ class _HomeviewState extends State<Homeview> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.account_balance_wallet_outlined,
-            color: color.withOpacity(0.5),
-            size: 50,
-          ),
+          Icon(Icons.history, color: color.withOpacity(0.5), size: 50),
           const SizedBox(height: 10),
           Text(
             AppStrings.get('empty', lang),

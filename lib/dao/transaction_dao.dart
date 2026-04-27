@@ -44,4 +44,45 @@ class TransactionDao {
       whereArgs: [localItemId],
     );
   }
+
+  /// Obtiene todo para el Home
+  Future<List<Map<String, dynamic>>> getAllTransactionsForHome(
+    int userId,
+  ) async {
+    final db = await dbHelper.database;
+
+    // Aquí es donde unimos Transaction + Item + Category
+    return await db.rawQuery(
+      '''
+      SELECT 
+        t.*, 
+        i.name as item_name, 
+        c.name as category_name
+      FROM transactions t
+      INNER JOIN items i ON t.item_id = i.id
+      INNER JOIN categories c ON i.category_id = c.id
+      WHERE i.user_id = ? AND t.is_deleted = 0
+      ORDER BY t.purchase_date DESC
+    ''',
+      [userId],
+    );
+  }
+
+  /// Para borrar desde la papelera del Home
+
+  Future<void> markForDeletion(int localId) async {
+    final db = await dbHelper.database;
+    await db.update(
+      'transactions',
+      {'is_deleted': 1},
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
+  }
+
+  /// Borrado físico tras sincronizar con el Back
+  Future<void> deletePhysically(int localId) async {
+    final db = await dbHelper.database;
+    await db.delete('transactions', where: 'id = ?', whereArgs: [localId]);
+  }
 }

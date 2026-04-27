@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
@@ -68,18 +67,19 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        server_id INTEGER,
-        item_id INTEGER,
-        stocks REAL,
-        purchase_price REAL,
-        inv_eur REAL,
-        purchase_date TEXT,
-        is_synced INTEGER DEFAULT 0,
-        FOREIGN KEY (item_id) REFERENCES items (id) ON DELETE CASCADE
-      )
-    ''');
+  CREATE TABLE transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_id INTEGER,
+    item_id INTEGER,
+    stocks REAL,
+    purchase_price REAL,
+    inv_eur REAL,
+    purchase_date TEXT,
+    is_synced INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0, -- AÑADE ESTA LÍNEA
+    FOREIGN KEY (item_id) REFERENCES items (id) ON DELETE CASCADE
+  )
+''');
 
     await db.execute('''
       CREATE TABLE categories (

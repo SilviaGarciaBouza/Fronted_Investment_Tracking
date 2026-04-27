@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
 import '../utils/app_strings.dart';
 import 'HomeView.dart';
-import 'RegisterView.dart';
+import 'RegisterView.dart'; // Añadido el ; que faltaba
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -16,6 +16,18 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   bool _obscureText = true;
+
+  // --- MÉTODO DE LOGIN REUTILIZABLE ---
+  Future<void> _handleLogin(InvViewModel vm, BuildContext context) async {
+    // Evita intentar loguearse si ya está cargando
+    if (vm.isLoading) return;
+
+    if (await vm.login(_userController.text, _passController.text)) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, Homeview.routeName);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,23 +76,22 @@ class _LoginViewState extends State<LoginView> {
                       const Spacer(flex: 2),
                       SizedBox(
                         width: double.infinity,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppStrings.get('login_title', lang),
-                              style: TextStyle(
-                                color: primary,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          AppStrings.get('login_title', lang),
+                          style: TextStyle(
+                            color: primary,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 50),
+
+                      // --- CAMPO USUARIO ---
                       TextField(
                         controller: _userController,
+                        textInputAction: TextInputAction
+                            .next, // Muestra "Siguiente" en el teclado
                         style: TextStyle(
                           color: vm.isDarkMode ? Colors.white : Colors.black,
                         ),
@@ -91,9 +102,15 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(height: 20),
+
+                      // --- CAMPO CONTRASEÑA ---
                       TextField(
                         controller: _passController,
                         obscureText: _obscureText,
+                        textInputAction:
+                            TextInputAction.done, // Muestra el check de "Hecho"
+                        onSubmitted: (_) =>
+                            _handleLogin(vm, context), // <--- DETECTA EL ENTER
                         style: TextStyle(
                           color: vm.isDarkMode ? Colors.white : Colors.black,
                         ),
@@ -117,6 +134,8 @@ class _LoginViewState extends State<LoginView> {
                             ),
                       ),
                       const Spacer(flex: 1),
+
+                      // --- BOTÓN ACCEDER ---
                       vm.isLoading
                           ? CircularProgressIndicator(color: primary)
                           : ElevatedButton(
@@ -130,19 +149,10 @@ class _LoginViewState extends State<LoginView> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed: () async {
-                                if (await vm.login(
-                                  _userController.text,
-                                  _passController.text,
-                                )) {
-                                  if (mounted) {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      Homeview.routeName,
-                                    );
-                                  }
-                                }
-                              },
+                              onPressed: () => _handleLogin(
+                                vm,
+                                context,
+                              ), // Llama al mismo método
                               child: Text(
                                 AppStrings.get('btn_access', lang),
                                 style: const TextStyle(
@@ -171,7 +181,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             if (!vm.isOnline)
                               Text(
-                                AppStrings.get('offline', lang),
+                                "Offline Mode", // Asegúrate de tener esta key en AppStrings
                                 style: const TextStyle(
                                   color: Colors.redAccent,
                                   fontSize: 10,

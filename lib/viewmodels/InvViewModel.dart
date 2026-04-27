@@ -1,7 +1,8 @@
 import 'dart:ui';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as apiService;
+import 'package:investment_tracking/models/transaction.dart';
+import 'package:investment_tracking/repositories/TransactionRepository.dart';
 import 'package:investment_tracking/service/SettingsService.dart';
 import '../models/item.dart';
 import '../models/user.dart';
@@ -10,14 +11,18 @@ import '../repositories/item_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/category_repository.dart';
 import '../dao/user_dao.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
+// pra la conexion saber si esta conectado  hicimos flutter pub add connectivity_plus
 /// ViewModel principal que gestiona el estado de la interfaz de inversiones.
 class InvViewModel extends ChangeNotifier {
   final ItemRepository _itemRepo = ItemRepository();
   final AuthRepository _authRepo = AuthRepository();
+  final TransactionRepository _transactionRepo = TransactionRepository();
   final CategoryRepository _categoryRepo = CategoryRepository();
   final UserDao _userDao = UserDao();
-
+  Timer? _heartbeatTimer;
   final SettingsService _settings = SettingsService();
 
   bool _isDarkMode = true;
@@ -30,6 +35,50 @@ class InvViewModel extends ChangeNotifier {
   List<Category> categories = [];
   bool isLoading = false;
   bool isOnline = true;
+  InvViewModel() {
+    _initConnectivityListener();
+    _startHeartbeat();
+  }
+  void _startHeartbeat() {
+    // Cada 10 segundos preguntams al servidor
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _checkRealConnection();
+    });
+  }
+
+  Future<void> _checkRealConnection() async {
+    try {
+      final hasServer = await _authRepo.checkConnection().timeout(
+        const Duration(seconds: 2),
+      );
+
+      if (isOnline != hasServer) {
+        isOnline = hasServer;
+        debugPrint(
+          "Conexión con Servidor Local: ${isOnline ? 'ACTIVA' : 'CAÍDA'}",
+        );
+        notifyListeners();
+      }
+
+      if (isOnline && currentUser != null) {
+        _itemRepo
+            .syncPendingData(currentUser!.id, currentUser!.token)
+            .then((_) => fetchItems());
+      }
+    } catch (_) {
+      if (isOnline) {
+        isOnline = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
 
   /// Autentica al usuario y prepara la sesión inicial.
   Future<bool> login(String username, String password) async {
@@ -212,6 +261,59 @@ class InvViewModel extends ChangeNotifier {
     return success;
   }
 
+  List<Transaction> get allTransactions {
+    List<Transaction> txs = [];
+    for (var item in itemList) {
+      for (var tx in item.transactions) {
+        txs.add(tx);
+      }
+    }
+    // Ordenar por fecha (la más reciente arriba)
+    txs.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
+    return txs;
+  }
+
+  // Añadir a un ítem existente
+  Future<void> addTransactionToItem({
+    required int itemId,
+    required double stocks,
+    required double price,
+  }) async {
+    isLoading = true;
+    notifyListeners();
+
+    await fetchItems();
+    isLoading = false;
+    notifyListeners();
+  }
+
+  ///  método para la Papelera del Home
+  Future<void> deleteTransaction(int localId, int? serverId) async {
+    if (currentUser == null) return;
+
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      final success = await _transactionRepo.deleteTransaction(
+        localId,
+        serverId,
+        currentUser!.token,
+      );
+
+      await fetchItems();
+
+      debugPrint(
+        success ? "Eliminado con éxito" : "Marcado para borrar offline",
+      );
+    } catch (e) {
+      debugPrint("Error al borrar transacción: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> initSettings() async {
     final savedTheme = await _settings.getTheme();
     final savedLang = await _settings.getLanguage();
@@ -243,6 +345,27 @@ class InvViewModel extends ChangeNotifier {
   void setLanguage(String code) async {
     _currentLocale = code;
     await _settings.saveLanguage(code);
+    notifyListeners();
+  }
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  void _initConnectivityListener() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
+      if (results.contains(ConnectivityResult.none)) {
+        isOnline = false;
+        notifyListeners();
+      } else {
+        _checkRealConnection();
+      }
+    });
+  }
+
+  Future<void> _syncInBackground() async {
+    await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
+    await fetchItems();
     notifyListeners();
   }
 

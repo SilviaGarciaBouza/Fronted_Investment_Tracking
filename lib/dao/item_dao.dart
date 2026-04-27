@@ -119,9 +119,9 @@ class ItemDao {
       '''
     SELECT items.*, categories.name as category_name 
     FROM items 
-    INNER JOIN categories ON items.category_id = categories.id
+    INNER JOIN categories ON items.category_id = categories.id 
     WHERE items.user_id = ? AND items.is_deleted = 0
-  ''',
+    ''',
       [userId],
     );
 
@@ -129,7 +129,7 @@ class ItemDao {
     for (var map in itemMaps) {
       final List<Map<String, dynamic>> txMaps = await db.query(
         'transactions',
-        where: 'item_id = ?',
+        where: 'item_id = ? AND is_deleted = 0',
         whereArgs: [map['id']],
       );
 

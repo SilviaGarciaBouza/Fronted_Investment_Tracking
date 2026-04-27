@@ -45,22 +45,31 @@ class _RegisterViewState extends State<RegisterView> {
               ),
             ),
             const SizedBox(height: 50),
+
+            // Campo Usuario: Salta al siguiente
             _buildField(
               _userController,
               AppStrings.get('user', lang),
               Icons.person_outline,
               primary,
               vm.isDarkMode,
+              action: TextInputAction.next,
             ),
             const SizedBox(height: 25),
+
+            // Campo Email: Teclado específico y salta al siguiente
             _buildField(
               _emailController,
               AppStrings.get('email', lang),
               Icons.email_outlined,
               primary,
               vm.isDarkMode,
+              type: TextInputType.emailAddress,
+              action: TextInputAction.next,
             ),
             const SizedBox(height: 25),
+
+            // Campo Password: Acción "Hecho" y envía el formulario al pulsar Enter
             _buildField(
               _passController,
               AppStrings.get('pass', lang),
@@ -68,7 +77,10 @@ class _RegisterViewState extends State<RegisterView> {
               primary,
               vm.isDarkMode,
               isPass: true,
+              action: TextInputAction.done,
+              onSubmitted: (_) => _handleRegister(vm, lang),
             ),
+
             const SizedBox(height: 60),
             vm.isLoading
                 ? CircularProgressIndicator(color: primary)
@@ -98,6 +110,7 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+  // Widget auxiliar con los nuevos parámetros opcionales
   Widget _buildField(
     TextEditingController ctrl,
     String label,
@@ -105,10 +118,16 @@ class _RegisterViewState extends State<RegisterView> {
     Color color,
     bool isDark, {
     bool isPass = false,
+    TextInputType type = TextInputType.text,
+    TextInputAction action = TextInputAction.done,
+    void Function(String)? onSubmitted,
   }) {
     return TextField(
       controller: ctrl,
       obscureText: isPass,
+      keyboardType: type,
+      textInputAction: action,
+      onSubmitted: onSubmitted,
       style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: label,
@@ -127,6 +146,8 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   void _handleRegister(InvViewModel vm, String lang) async {
+    if (vm.isLoading) return; // Evita clics repetidos
+
     if (_userController.text.isEmpty ||
         _passController.text.isEmpty ||
         _emailController.text.isEmpty) {
@@ -135,11 +156,13 @@ class _RegisterViewState extends State<RegisterView> {
       );
       return;
     }
+
     final success = await vm.register(
       _userController.text.trim(),
       _passController.text.trim(),
       _emailController.text.trim(),
     );
+
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppStrings.get('reg_success', lang))),
