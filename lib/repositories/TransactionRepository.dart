@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../dao/transaction_dao.dart';
 import '../models/transaction.dart';
 import '../service/api_service.dart';
@@ -45,7 +47,6 @@ class TransactionRepository {
       }
       return false;
     } catch (e) {
-      // Si no hay red, marcamos para borrar luego
       await _transactionDao.markForDeletion(localId);
       return false;
     }
@@ -66,11 +67,113 @@ class TransactionRepository {
       }, token: token);
 
       if (response != null) {
-        // Guardar en SQLite como sincronizado
-        // await _transactionDao.saveTransaction(Transaction.fromJson(response));
+        final newTx = Transaction.fromJson(response);
+        await _transactionDao.dbHelper.database.then(
+          (db) => db.insert('transactions', newTx.toLocalMap(itemId)),
+        );
       }
     } catch (e) {
-      // Guardar en SQLite como pendiente (is_synced = 0)
+      final offlineTx = Transaction(
+        stocks: tx.stocks,
+        purchasePrice: tx.purchasePrice,
+        invEur: tx.invEur,
+        purchaseDate: tx.purchaseDate,
+        isSynced: false,
+      );
+      await _transactionDao.dbHelper.database.then(
+        (db) => db.insert('transactions', offlineTx.toLocalMap(itemId)),
+      );
+    }
+  }
+
+  /// Sincronización completa (El "Push" que te faltaba)
+  Future<void> syncEverything(int userId, String token) async {
+    final unsynced = await _transactionDao.getUnsyncedTransactions(
+      0,
+    ); // Ajustar lógica de ID si es necesario
+    for (var row in unsynced) {}
+
+    final toDelete = await _transactionDao.getPendingDeletions();
+    for (var row in toDelete) {
+      try {
+        final success = await _apiService.delete(
+          '/transactions/${row['server_id']}',
+          token: token,
+        );
+        if (success) await _transactionDao.deletePhysically(row['id']);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> pushPendingTransactions(String token) async {
+    final List<Map<String, dynamic>> unsyncedRaw = await _transactionDao
+        .getUnsyncedTransactions(0);
+
+    for (var map in unsyncedRaw) {
+      try {
+        final tx = Transaction.fromLocalMap(map);
+        final localId = map['id'];
+        final itemId = map['item_id'];
+
+        final response = await _apiService.post('/transactions', {
+          "itemId": itemId,
+          "amount": tx.stocks,
+          "purchasePrice": tx.purchasePrice,
+          "date": tx.purchaseDate.toIso8601String(),
+        }, token: token);
+
+        if (response != null) {
+          final int serverId = int.parse(response['id'].toString());
+
+          await _transactionDao.markAsSynced(localId, serverId);
+          debugPrint(
+            "Sincronizada transacción local $localId con serverId $serverId",
+          );
+        }
+      } catch (e) {
+        debugPrint("Error al sincronizar transacción local: $e");
+      }
+    }
+  }
+
+  Future<void> syncAllPendings(String token) async {
+    final List<Map<String, dynamic>> unsyncedRows = await _transactionDao
+        .getAllUnsyncedTransactions();
+    final List<Map<String, dynamic>> deletionsRows = await _transactionDao
+        .getPendingDeletions();
+
+    for (var row in unsyncedRows) {
+      try {
+        final response = await _apiService.post('/transactions', {
+          "itemId": row['item_id'], // El ID del activo padre
+          "amount": row['stocks'],
+          "purchasePrice": row['purchase_price'],
+          "date": row['purchase_date'],
+        }, token: token);
+
+        if (response != null) {
+          final int serverIdFromBack = int.parse(response['id'].toString());
+          await _transactionDao.markAsSynced(row['id'], serverIdFromBack);
+        }
+      } catch (e) {
+        debugPrint("Error subiendo transacción ${row['id']}: $e");
+        rethrow;
+      }
+    }
+
+    for (var row in deletionsRows) {
+      try {
+        final bool success = await _apiService.delete(
+          '/transactions/${row['server_id']}',
+          token: token,
+        );
+        if (success) {
+          await _transactionDao.deletePhysically(row['id']);
+        }
+      } catch (e) {
+        debugPrint("Error borrando en servidor ${row['server_id']}: $e");
+        rethrow;
+      }
     }
   }
 }

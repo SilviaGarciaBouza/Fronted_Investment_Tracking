@@ -11,7 +11,6 @@ import '../repositories/item_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/category_repository.dart';
 import '../dao/user_dao.dart';
-import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 // pra la conexion saber si esta conectado  hicimos flutter pub add connectivity_plus
@@ -46,24 +45,18 @@ class InvViewModel extends ChangeNotifier {
     });
   }
 
+  /// Verifica la conexión real con el servidor y gestiona la resincronización.
+  // En InvViewModel
   Future<void> _checkRealConnection() async {
     try {
-      final hasServer = await _authRepo.checkConnection().timeout(
+      // Solo preguntamos si el servidor está vivo para cambiar el color del icono
+      final bool hasServer = await _authRepo.checkConnection().timeout(
         const Duration(seconds: 2),
       );
 
       if (isOnline != hasServer) {
         isOnline = hasServer;
-        debugPrint(
-          "Conexión con Servidor Local: ${isOnline ? 'ACTIVA' : 'CAÍDA'}",
-        );
-        notifyListeners();
-      }
-
-      if (isOnline && currentUser != null) {
-        _itemRepo
-            .syncPendingData(currentUser!.id, currentUser!.token)
-            .then((_) => fetchItems());
+        notifyListeners(); // Esto solo cambia el icono de la nube
       }
     } catch (_) {
       if (isOnline) {
@@ -71,13 +64,6 @@ class InvViewModel extends ChangeNotifier {
         notifyListeners();
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _heartbeatTimer?.cancel();
-    _connectivitySubscription?.cancel();
-    super.dispose();
   }
 
   /// Autentica al usuario y prepara la sesión inicial.
@@ -162,31 +148,38 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
-
-      itemList = await _itemRepo.fetchUserItems(
-        currentUser!.id,
-        currentUser!.token,
+      // 1. ¿Tenemos servidor?
+      isOnline = await _authRepo.checkConnection().timeout(
+        const Duration(seconds: 3),
       );
 
-      isOnline = true;
+      if (isOnline) {
+        debugPrint("--- Iniciando Sincronización Manual ---");
+
+        try {
+          await _transactionRepo.syncAllPendings(currentUser!.token);
+
+          itemList = await _itemRepo.fetchUserItems(
+            currentUser!.id,
+            currentUser!.token,
+          );
+
+          debugPrint("Sincronización manual completada con éxito.");
+        } catch (e) {
+          debugPrint(
+            "Error en el conjunto: Falló la subida. Abortando descarga.",
+          );
+          itemList = await _itemRepo.getLocalItems(currentUser!.id);
+        }
+      } else {
+        itemList = await _itemRepo.getLocalItems(currentUser!.id);
+      }
     } catch (e) {
-      debugPrint("Modo Offline: Activando color rojo y cargando caché.");
-
       isOnline = false;
-
       itemList = await _itemRepo.getLocalItems(currentUser!.id);
     } finally {
       isLoading = false;
       notifyListeners();
-    }
-    for (var item in itemList) {
-      debugPrint("--- ANALIZANDO: ${item.name} ---");
-      debugPrint("Precio Actual: ${item.currentPrice}");
-      debugPrint("Cantidad Total (Stocks): ${item.totalStocks}");
-      debugPrint("Inversión Total: ${item.totalInvEur}");
-      debugPrint("Valor Calculado: ${item.currentValue}");
-      debugPrint("PnL Resultante: ${item.profitEur}");
     }
   }
 
@@ -268,12 +261,10 @@ class InvViewModel extends ChangeNotifier {
         txs.add(tx);
       }
     }
-    // Ordenar por fecha (la más reciente arriba)
     txs.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
     return txs;
   }
 
-  // Añadir a un ítem existente
   Future<void> addTransactionToItem({
     required int itemId,
     required double stocks,
@@ -318,7 +309,6 @@ class InvViewModel extends ChangeNotifier {
     final savedTheme = await _settings.getTheme();
     final savedLang = await _settings.getLanguage();
 
-    // Si no hay tema guardado, miramos el brillo del sistema (Windows/Linux/Android)
     if (savedTheme == null) {
       _isDarkMode =
           PlatformDispatcher.instance.platformBrightness == Brightness.dark;
@@ -326,7 +316,6 @@ class InvViewModel extends ChangeNotifier {
       _isDarkMode = savedTheme;
     }
 
-    // Si no hay idioma, miramos el del sistema
     if (savedLang == null) {
       String sysLang = PlatformDispatcher.instance.locale.languageCode;
       _currentLocale = (['es', 'gl', 'en'].contains(sysLang)) ? sysLang : 'es';

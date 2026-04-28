@@ -15,20 +15,27 @@ class TransactionDao {
 
     batch.delete(
       'transactions',
-      where: 'item_id = ? AND is_synced = 1',
+      where: 'item_id = ? AND is_synced = 1 AND is_deleted = 0',
       whereArgs: [localItemId],
     );
 
     for (var tx in txs) {
-      batch.insert('transactions', {
-        'server_id': tx.serverId,
-        'item_id': localItemId,
-        'stocks': tx.stocks,
-        'purchase_price': tx.purchasePrice,
-        'inv_eur': tx.invEur,
-        'purchase_date': tx.purchaseDate.toIso8601String(),
-        'is_synced': 1,
-      });
+      batch.rawInsert(
+        '''
+      INSERT INTO transactions (server_id, item_id, stocks, purchase_price, inv_eur, purchase_date, is_synced, is_deleted)
+      SELECT ?, ?, ?, ?, ?, ?, 1, 0
+      WHERE NOT EXISTS (SELECT 1 FROM transactions WHERE server_id = ? AND is_deleted = 1)
+    ''',
+        [
+          tx.serverId,
+          localItemId,
+          tx.stocks,
+          tx.purchasePrice,
+          tx.invEur,
+          tx.purchaseDate.toIso8601String(),
+          tx.serverId,
+        ],
+      );
     }
     await batch.commit(noResult: true);
   }
@@ -84,5 +91,35 @@ class TransactionDao {
   Future<void> deletePhysically(int localId) async {
     final db = await dbHelper.database;
     await db.delete('transactions', where: 'id = ?', whereArgs: [localId]);
+  }
+
+  /// Obtiene las transacciones marcadas para borrar que existen en el servidor
+  Future<List<Map<String, dynamic>>> getPendingDeletions() async {
+    final db = await dbHelper.database;
+    return await db.query(
+      'transactions',
+      where: 'is_deleted = 1 AND server_id IS NOT NULL',
+    );
+  }
+
+  /// Obtiene ABSOLUTAMENTE TODAS las transacciones pendientes de subir (is_synced = 0)
+  /// de cualquier activo.
+  Future<List<Map<String, dynamic>>> getAllUnsyncedTransactions() async {
+    final db = await dbHelper.database;
+    return await db.query(
+      'transactions',
+      where: 'is_synced = 0 AND is_deleted = 0',
+    );
+  }
+
+  /// Actualiza una fila local con el ID que nos da el servidor tras el éxito
+  Future<void> markAsSynced(int localId, int serverId) async {
+    final db = await dbHelper.database;
+    await db.update(
+      'transactions',
+      {'server_id': serverId, 'is_synced': 1},
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
   }
 }
