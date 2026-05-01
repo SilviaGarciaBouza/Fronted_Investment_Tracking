@@ -143,38 +143,26 @@ class InvViewModel extends ChangeNotifier {
   /// MÉTODO PRINCIPAL DE CARGA: Sincroniza y refresca la lista.
   Future<void> fetchItems() async {
     if (currentUser == null) return;
-
     isLoading = true;
     notifyListeners();
 
     try {
-      // 1. ¿Tenemos servidor?
-      isOnline = await _authRepo.checkConnection().timeout(
-        const Duration(seconds: 3),
-      );
-
       if (isOnline) {
-        debugPrint("--- Iniciando Sincronización Manual ---");
+        // 1PRIMERO sincronizamos los Items (esto les dará un server_id en MariaDB)
+        await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
 
-        try {
-          await _transactionRepo.syncAllPendings(currentUser!.token);
+        await _transactionRepo.syncAllPendings(currentUser!.token);
 
-          itemList = await _itemRepo.fetchUserItems(
-            currentUser!.id,
-            currentUser!.token,
-          );
-
-          debugPrint("Sincronización manual completada con éxito.");
-        } catch (e) {
-          debugPrint(
-            "Error en el conjunto: Falló la subida. Abortando descarga.",
-          );
-          itemList = await _itemRepo.getLocalItems(currentUser!.id);
-        }
+        itemList = await _itemRepo.fetchUserItems(
+          currentUser!.id,
+          currentUser!.token,
+        );
       } else {
         itemList = await _itemRepo.getLocalItems(currentUser!.id);
       }
     } catch (e) {
+      debugPrint("Error en fetchItems: $e");
+      // Si falla la red durante la descarga, caemos a local
       isOnline = false;
       itemList = await _itemRepo.getLocalItems(currentUser!.id);
     } finally {
@@ -270,15 +258,46 @@ class InvViewModel extends ChangeNotifier {
     required double stocks,
     required double price,
   }) async {
+    if (currentUser == null) return;
+
     isLoading = true;
     notifyListeners();
 
-    await fetchItems();
-    isLoading = false;
-    notifyListeners();
+    try {
+      // 1. Creamos el objeto Transaction
+      final newTx = Transaction(
+        stocks: stocks,
+        purchasePrice: price,
+        invEur: stocks * price,
+        purchaseDate: DateTime.now(),
+        isSynced: false, // Por defecto false, el repo decidirá
+      );
+      final parentItem = itemList.firstWhere((i) => i.id == itemId);
+      // 2. LLAMAR AL REPOSITORIO (Esto es lo que faltaba)
+      // El repo intentará MariaDB, si falla, lo dejará en SQLite (is_synced = 0)
+      await _transactionRepo.createTransaction(
+        itemId,
+        parentItem.serverId,
+        newTx,
+        currentUser!.token,
+      );
+      if (isOnline) {
+        await _transactionRepo.syncAllPendings(currentUser!.token);
+      }
+
+      // 3. Refrescar la lista
+      await fetchItems();
+    } catch (e) {
+      debugPrint("Error al añadir transacción: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   ///  método para la Papelera del Home
+  ///
+  ///
   Future<void> deleteTransaction(int localId, int? serverId) async {
     if (currentUser == null) return;
 

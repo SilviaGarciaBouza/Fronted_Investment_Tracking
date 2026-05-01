@@ -4,7 +4,7 @@
 /// cuando se recupera la conexión.
 class Transaction {
   // ID local en SQLite (autoincrement)
-  final int? id;
+  int? id;
   final int? serverId;
   // ID  en MariadB
   final double stocks;

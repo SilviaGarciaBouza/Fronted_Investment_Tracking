@@ -401,6 +401,11 @@ class _HomeviewState extends State<Homeview> {
 
               if (context.mounted) {
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Transacción de $assetName eliminada"),
+                  ),
+                );
               }
             },
             child: Text(

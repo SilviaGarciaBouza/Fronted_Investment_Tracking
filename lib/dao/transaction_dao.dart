@@ -6,7 +6,6 @@ class TransactionDao {
   final dbHelper = DatabaseHelper.instance;
 
   /// Sincroniza las transacciones de un activo provenientes del servidor.
-  ///
   /// Borra las transacciones locales que ya estaban marcadas como sincronizadas
   /// para evitar duplicados y guarda la versión "oficial" del backend.
   Future<void> syncTransactions(List<Transaction> txs, int localItemId) async {
@@ -106,10 +105,14 @@ class TransactionDao {
   /// de cualquier activo.
   Future<List<Map<String, dynamic>>> getAllUnsyncedTransactions() async {
     final db = await dbHelper.database;
-    return await db.query(
-      'transactions',
-      where: 'is_synced = 0 AND is_deleted = 0',
-    );
+    return await db.rawQuery('''
+    SELECT 
+      t.*, 
+      i.server_id as item_server_id 
+    FROM transactions t
+    INNER JOIN items i ON t.item_id = i.id
+    WHERE t.is_synced = 0 AND t.is_deleted = 0 AND i.server_id IS NOT NULL
+  ''');
   }
 
   /// Actualiza una fila local con el ID que nos da el servidor tras el éxito
