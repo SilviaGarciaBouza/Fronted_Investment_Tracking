@@ -97,13 +97,13 @@ class TransactionDao {
     );
   }
 
-  /// Obtiene los ítems creados offline pendientes de subir al servidor.
-  Future<List<Transaction>> getUnsyncTransactions(int userId) async {
+  /// Obtiene los transacciones creados offline pendientes de subir al servidor.
+  Future<List<Transaction>> getUnsyncTransactions() async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'transactions',
-      where: 'user_id = ? AND is_synced = 0 AND is_deleted = 0',
-      whereArgs: [userId],
+      where: 'is_synced = 0 AND is_deleted = 0',
+      //whereArgs: [localItemId],
     );
     List<Transaction> unsynced = [];
     for (var map in maps) {

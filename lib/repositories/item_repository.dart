@@ -158,7 +158,7 @@ class ItemRepository {
         isSynced: false,
         currentPrice: 0.0,
       );
-      itemId = await _itemDao.createItem(item);
+      itemId = await _itemDao.createItem(item, userId);
     }
 
     final transaction = Transaction(
@@ -201,8 +201,11 @@ class ItemRepository {
             'isSynced': false,
             'currentPrice': 0.0,
           }, token: token);
-          if (success) {
-            await _itemDao.markAsSynced(item.id!);
+
+          if (success != null) {
+            final int newServerId = success['id'];
+
+            await _itemDao.markAsSynced(item.id!, newServerId);
           }
         }
       } catch (e) {
@@ -226,7 +229,7 @@ class ItemRepository {
         }
       }
       final List<Transaction> pendingTransactionSync = await _transactionDao
-          .getUnsyncTransactions(userId);
+          .getUnsyncTransactions();
       for (var transaction in pendingTransactionSync) {
         try {
           if (item.serverId == null) {

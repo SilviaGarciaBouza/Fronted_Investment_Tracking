@@ -129,9 +129,9 @@ class ItemDao {
   }
 
   //createItem
-  Future<int> createItem(Item item) async {
+  Future<int> createItem(Item item, int userId) async {
     final db = await dbHelper.database;
-    return await db.insert('items', item.toLocalMap(0));
+    return await db.insert('items', item.toLocalMap(userId));
   }
 
   //_______________________________________________---
@@ -196,11 +196,11 @@ class ItemDao {
     );
   }
 
-  Future<void> markAsSynced(int localId) async {
+  Future<void> markAsSynced(int localId, int serverId) async {
     final db = await dbHelper.database;
     await db.update(
       'items',
-      {'is_synced': 1},
+      {'server_id': serverId, 'is_synced': 1},
       where: 'id = ?',
       whereArgs: [localId],
     );
