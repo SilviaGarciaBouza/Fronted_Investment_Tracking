@@ -12,6 +12,8 @@ class Transaction {
   final double invEur;
   final DateTime purchaseDate;
   final bool isSynced;
+  final bool isDeleted;
+  final int? itemId;
 
   Transaction({
     this.id,
@@ -21,6 +23,8 @@ class Transaction {
     required this.invEur,
     required this.purchaseDate,
     this.isSynced = true,
+    this.isDeleted = false,
+    this.itemId,
   });
 
   /// Factory para DTOs del backend.
@@ -43,6 +47,8 @@ class Transaction {
     invEur: (map['inv_eur'] as num).toDouble(),
     purchaseDate: DateTime.parse(map['purchase_date']),
     isSynced: map['is_synced'] == 1,
+    itemId: map['item_id'],
+    isDeleted: map['is_deleted'] == 1,
   );
 
   /// Prepara los datos para insertar en SQLite local.

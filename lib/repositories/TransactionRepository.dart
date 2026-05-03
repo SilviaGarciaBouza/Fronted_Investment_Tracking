@@ -7,6 +7,37 @@ class TransactionRepository {
   final ApiService _apiService = ApiService();
   final TransactionDao _transactionDao = TransactionDao();
 
+  /// ELIMINAR: Si falla el servidor, marca con is_deleted = 1
+  Future<bool> deleteTransaction(
+    int localId,
+    int? serverId,
+    String token,
+  ) async {
+    try {
+      if (serverId != null) {
+        final success = await _apiService.delete(
+          '/transactions/$serverId',
+          token: token,
+        );
+        if (success) {
+          // Si el servidor confirma, borramos físicamente de la app
+          await _transactionDao.deletePhysically(localId);
+          return true;
+        }
+      } else {
+        // Si no tiene serverId, es que nunca se subió, borramos directo
+        await _transactionDao.deletePhysically(localId);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Offline: Marcando para borrar en el servidor más tarde.");
+      // Fallo/Offline: Marcamos para borrado lógico (is_deleted = 1)
+      await _transactionDao.markForDeletion(localId);
+      return false;
+    }
+  }
+
   /// Obtiene transacciones combinando Local + Server si es posible.
   Future<List<Transaction>> getHomeTransactions(
     int userId,
@@ -52,37 +83,6 @@ class TransactionRepository {
       }
     } catch (e) {
       debugPrint("Modo Offline: Guardado localmente");
-    }
-  }
-
-  /// ELIMINAR: Si falla el servidor, marca con is_deleted = 1
-  Future<bool> deleteTransaction(
-    int localId,
-    int? serverId,
-    String token,
-  ) async {
-    try {
-      if (serverId != null) {
-        final success = await _apiService.delete(
-          '/transactions/$serverId',
-          token: token,
-        );
-        if (success) {
-          // Si el servidor confirma, borramos físicamente de la app
-          await _transactionDao.deletePhysically(localId);
-          return true;
-        }
-      } else {
-        // Si no tiene serverId, es que nunca se subió, borramos directo
-        await _transactionDao.deletePhysically(localId);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      debugPrint("Offline: Marcando para borrar en el servidor más tarde.");
-      // Fallo/Offline: Marcamos para borrado lógico (is_deleted = 1)
-      await _transactionDao.markForDeletion(localId);
-      return false;
     }
   }
 

@@ -24,10 +24,4 @@ class UserDao {
     if (maps.isNotEmpty) return User.fromJson(maps.first);
     return null;
   }
-
-  /// Cierra la sesión eliminando los datos de SQLite.
-  Future<void> deleteUser() async {
-    final db = await dbHelper.database;
-    await db.delete('users');
-  }
 }

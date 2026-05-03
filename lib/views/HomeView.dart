@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
-import 'package:investment_tracking/views/AddItem.dart';
+import 'package:investment_tracking/views/AddTransaction.dart';
 import 'package:investment_tracking/views/total_view.dart';
 import 'package:investment_tracking/views/TransactionDetailView.dart';
 import 'package:investment_tracking/views/LoginView.dart';
@@ -56,7 +56,7 @@ class _HomeviewState extends State<Homeview> {
                     color: vm.isOnline ? primaryColor : Colors.redAccent,
                   ),
                 ),
-                onPressed: () => vm.fetchItems(),
+                onPressed: () => {vm.fetchItems()},
               );
             },
           ),
@@ -226,30 +226,26 @@ class _HomeviewState extends State<Homeview> {
 
     return vm.isLoading && vm.itemList.isEmpty
         ? Center(child: CircularProgressIndicator(color: primary))
-        : RefreshIndicator(
-            color: primary,
-            onRefresh: () => vm.fetchItems(),
-            child: transactions.isEmpty
-                ? _buildEmptyState(hColor, lang)
-                : Column(
-                    children: [
-                      _buildHeader(lang, hColor),
-                      Divider(color: text.withOpacity(0.1)),
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: transactions.length,
-                          itemBuilder: (context, index) => _buildTransactionRow(
-                            transactions[index],
-                            vm,
-                            lang,
-                            primary,
-                            text,
-                          ),
-                        ),
-                      ),
-                    ],
+        : transactions.isEmpty
+        ? _buildEmptyState(hColor, lang)
+        : Column(
+            children: [
+              _buildHeader(lang, hColor),
+              Divider(color: text.withOpacity(0.1)),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: transactions.length,
+                  itemBuilder: (context, index) => _buildTransactionRow(
+                    transactions[index],
+                    vm,
+                    lang,
+                    primary,
+                    text,
                   ),
+                ),
+              ),
+            ],
           );
   }
 
@@ -364,6 +360,7 @@ class _HomeviewState extends State<Homeview> {
                 vm,
                 lang,
                 text,
+                parentItem.id!,
               ),
             ),
           ],
@@ -378,6 +375,7 @@ class _HomeviewState extends State<Homeview> {
     InvViewModel vm,
     String lang,
     Color textColor,
+    int itemId,
   ) {
     showDialog(
       context: context,
@@ -397,7 +395,7 @@ class _HomeviewState extends State<Homeview> {
           ),
           TextButton(
             onPressed: () async {
-              await vm.deleteTransaction(tx.id!, tx.serverId);
+              await vm.deleteTransaction(tx.id!, tx.serverId, itemId);
 
               if (context.mounted) {
                 Navigator.pop(context);

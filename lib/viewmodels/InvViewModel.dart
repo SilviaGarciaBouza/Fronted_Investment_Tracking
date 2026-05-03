@@ -89,6 +89,34 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  /// ELIMINAR: Si falla el servidor, marca con is_deleted = 1
+  Future<void> deleteTransaction(int localId, int? serverId, int itemId) async {
+    if (currentUser == null) return;
+    isLoading = true;
+    notifyListeners();
+    try {
+      final success = await _transactionRepo.deleteTransaction(
+        localId,
+        serverId,
+        currentUser!.token,
+      );
+
+      await fetchItems();
+
+      debugPrint(
+        success ? "Eliminado con éxito" : "Marcado para borrar offline",
+      );
+    } catch (e) {
+      debugPrint("Error al borrar transacción: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  ///addTransaction
+
+  //______________________--
   /// Verifica si hay una sesión activa guardada al arrancar la App.
   /* Future<bool> checkLocalSession() async {
     final savedUser = await _userDao.getUser();
@@ -122,7 +150,6 @@ class InvViewModel extends ChangeNotifier {
 
   /// Cierra la sesión y limpia las listas.
   Future<void> logout() async {
-    await _userDao.deleteUser();
     currentUser = null;
     itemList = [];
     categories = [];
@@ -140,31 +167,18 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
-  /// MÉTODO PRINCIPAL DE CARGA: Sincroniza y refresca la lista.
+  /// MÉTODO PRINCIPAL DE CARGA: Sincroniza y refresca la lista de transacciones.
   Future<void> fetchItems() async {
     if (currentUser == null) return;
     isLoading = true;
     notifyListeners();
-
     try {
-      if (isOnline) {
-        // 1PRIMERO sincronizamos los Items (esto les dará un server_id en MariaDB)
-        await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
-
-        await _transactionRepo.syncAllPendings(currentUser!.token);
-
-        itemList = await _itemRepo.fetchUserItems(
-          currentUser!.id,
-          currentUser!.token,
-        );
-      } else {
-        itemList = await _itemRepo.getLocalItems(currentUser!.id);
-      }
+      itemList = await _itemRepo.fetchUserItems(
+        currentUser!.id,
+        currentUser!.token,
+      );
     } catch (e) {
       debugPrint("Error en fetchItems: $e");
-      // Si falla la red durante la descarga, caemos a local
-      isOnline = false;
-      itemList = await _itemRepo.getLocalItems(currentUser!.id);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -186,22 +200,14 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newItem = Item(
-        name: name,
-        category: Category(id: categoryId, name: ""),
-        transactions: [],
-        currentPrice: price,
-        isSynced: false,
-      );
-
-      await _itemRepo.saveItem(
-        newItem,
+      _itemRepo.saveTransaction(
+        name,
         stocks,
         price,
+        categoryId,
         currentUser!.id,
         currentUser!.token,
       );
-
       await fetchItems();
 
       return isOnline
@@ -289,35 +295,6 @@ class InvViewModel extends ChangeNotifier {
       await fetchItems();
     } catch (e) {
       debugPrint("Error al añadir transacción: $e");
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  ///  método para la Papelera del Home
-  ///
-  ///
-  Future<void> deleteTransaction(int localId, int? serverId) async {
-    if (currentUser == null) return;
-
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      final success = await _transactionRepo.deleteTransaction(
-        localId,
-        serverId,
-        currentUser!.token,
-      );
-
-      await fetchItems();
-
-      debugPrint(
-        success ? "Eliminado con éxito" : "Marcado para borrar offline",
-      );
-    } catch (e) {
-      debugPrint("Error al borrar transacción: $e");
     } finally {
       isLoading = false;
       notifyListeners();

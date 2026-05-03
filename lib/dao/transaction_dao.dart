@@ -1,10 +1,56 @@
 import 'package:investment_tracking/database/database_helper.dart';
+import 'package:sqflite/sqflite.dart' hide Transaction;
 import '../models/transaction.dart';
 
 /// Gestión de persistencia para las operaciones financieras (compras/ventas).
 class TransactionDao {
   final dbHelper = DatabaseHelper.instance;
 
+  /// Para borrar desde la papelera del Home
+
+  Future<void> markForDeletion(int localId) async {
+    final db = await dbHelper.database;
+    await db.update(
+      'transactions',
+      {'is_deleted': 1},
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
+  }
+
+  /// Borrado físico tras sincronizar con el Back
+  Future<void> deletePhysically(int localId) async {
+    final db = await dbHelper.database;
+    await db.delete('transactions', where: 'id = ?', whereArgs: [localId]);
+  }
+
+  /// Obtiene el número de transacciones activas de un activo específico.
+  Future<int> getTransactionItemsCount(int itemId) async {
+    final db = await dbHelper.database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) FROM transactions WHERE item_id = ? AND is_deleted = 0',
+      [itemId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  /// Obtiene el número de transacciones generico de un activo específico.
+  Future<int> getTransactionItemsCountTotal(int itemId) async {
+    final db = await dbHelper.database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) FROM transactions WHERE item_id = ?',
+      [itemId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+  //saveTransaction al item le añadimpos esta tranasaccion
+
+  Future<int> saveTransaction(Transaction transaction, int itemId) async {
+    final db = await dbHelper.database;
+    return await db.insert('transactions', transaction.toLocalMap(itemId));
+  }
+
+  //____________________________-
   /// Sincroniza las transacciones de un activo provenientes del servidor.
   /// Borra las transacciones locales que ya estaban marcadas como sincronizadas
   /// para evitar duplicados y guarda la versión "oficial" del backend.
@@ -51,6 +97,21 @@ class TransactionDao {
     );
   }
 
+  /// Obtiene los ítems creados offline pendientes de subir al servidor.
+  Future<List<Transaction>> getUnsyncTransactions(int userId) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transactions',
+      where: 'user_id = ? AND is_synced = 0 AND is_deleted = 0',
+      whereArgs: [userId],
+    );
+    List<Transaction> unsynced = [];
+    for (var map in maps) {
+      unsynced.add(Transaction.fromLocalMap(map));
+    }
+    return unsynced;
+  }
+
   /// Obtiene todo para el Home
   Future<List<Map<String, dynamic>>> getAllTransactionsForHome(
     int userId,
@@ -74,24 +135,6 @@ class TransactionDao {
     );
   }
 
-  /// Para borrar desde la papelera del Home
-
-  Future<void> markForDeletion(int localId) async {
-    final db = await dbHelper.database;
-    await db.update(
-      'transactions',
-      {'is_deleted': 1},
-      where: 'id = ?',
-      whereArgs: [localId],
-    );
-  }
-
-  /// Borrado físico tras sincronizar con el Back
-  Future<void> deletePhysically(int localId) async {
-    final db = await dbHelper.database;
-    await db.delete('transactions', where: 'id = ?', whereArgs: [localId]);
-  }
-
   /// Obtiene las transacciones marcadas para borrar que existen en el servidor
   Future<List<Map<String, dynamic>>> getPendingDeletions() async {
     final db = await dbHelper.database;
@@ -99,6 +142,20 @@ class TransactionDao {
       'transactions',
       where: 'is_deleted = 1 AND server_id IS NOT NULL',
     );
+  }
+
+  /// Obtiene las transacciones marcadas para borrar que existen en el servidor
+  Future<List<Transaction>> getPendingToDelete() async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'transactions',
+      where: 'is_deleted = 1 AND server_id IS NOT NULL',
+    );
+    List<Transaction> toDelete = [];
+    for (var map in maps) {
+      toDelete.add(Transaction.fromLocalMap(map));
+    }
+    return toDelete;
   }
 
   /// Obtiene ABSOLUTAMENTE TODAS las transacciones pendientes de subir (is_synced = 0)

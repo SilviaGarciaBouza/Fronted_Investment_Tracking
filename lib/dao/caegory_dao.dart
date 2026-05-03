@@ -29,4 +29,16 @@ class CategoryDao {
     final List<Map<String, dynamic>> maps = await db.query('categories');
     return maps.map((map) => Category.fromJson(map)).toList();
   }
+  //getCategorybyid
+
+  Future<Category?> getCategoryById(int id) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'categories',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) return Category.fromJson(maps.first);
+    return null;
+  }
 }

@@ -4,34 +4,26 @@ import '../dao/transaction_dao.dart';
 import '../models/item.dart';
 import '../models/transaction.dart';
 
-/// DAO central para la gestión de activos.
+/// DAO central para la gestión de items.
 /// Coordina la persistencia en SQLite y la relación con las transacciones.
 class ItemDao {
   final dbHelper = DatabaseHelper.instance;
   final transactionDao = TransactionDao();
 
-  /// Fusión de datos del servidor con la base de datos local.
+  /// Guarda los datos del servidor en SQLite.
   Future<void> saveItems(List<Item> items, int userId) async {
     final db = await dbHelper.database;
-
     await db.transaction((txn) async {
-      // Lista para identificar qué IDs del servidor han llegado
       List<int> serverIdsRecibidos = [];
-
       for (var item in items) {
         if (item.serverId != null) serverIdsRecibidos.add(item.serverId!);
-
-        // Buscamos si ya existe por nombre para este usuario (para no duplicar)
         final List<Map<String, dynamic>> existing = await txn.query(
           'items',
-          where: 'name = ? AND user_id = ?',
-          whereArgs: [item.name, userId],
+          where: 'server_id = ? AND user_id = ?',
+          whereArgs: [item.serverId, userId],
         );
-
         int localId;
-
         if (existing.isNotEmpty) {
-          // ACTUALIZAR: Mantenemos el ID local original
           localId = existing.first['id'];
           await txn.update(
             'items',
@@ -46,12 +38,10 @@ class ItemDao {
             whereArgs: [localId],
           );
         } else {
-          // insrta  nuevo activo desde el servidor
           final map = item.toLocalMap(userId);
           map['is_synced'] = 1;
           localId = await txn.insert('items', map);
         }
-
         // Sincronizar las transacciones.
         // Borramos las locales sincronizadas para evitar duplicados
         await txn.delete(
@@ -59,7 +49,6 @@ class ItemDao {
           where: 'item_id = ? AND is_synced = 1',
           whereArgs: [localId],
         );
-
         // Insertamos la lista que viene del servidor
         for (var tx in item.transactions) {
           await txn.insert('transactions', {
@@ -73,7 +62,6 @@ class ItemDao {
           });
         }
       }
-
       // Eliminar localmente lo que el servidor ya no tiene
       if (serverIdsRecibidos.isNotEmpty) {
         await txn.delete(
@@ -85,30 +73,6 @@ class ItemDao {
       }
     });
     debugPrint("Sincronización DAO: Base local actualizada con éxito.");
-  }
-
-  /// Guarda un activo nuevo creado sin conexión.
-  Future<void> saveItemOffline(
-    Item item,
-    double stocks,
-    double price,
-    int userId,
-  ) async {
-    final db = await dbHelper.database;
-    final map = item.toLocalMap(userId);
-    map['is_synced'] = 0;
-
-    final idGenerado = await db.insert('items', map);
-
-    // Creamos la transacción inicial vinculada
-    await db.insert('transactions', {
-      'item_id': idGenerado,
-      'stocks': stocks,
-      'purchase_price': price,
-      'inv_eur': stocks * price,
-      'purchase_date': DateTime.now().toIso8601String(),
-      'is_synced': 0,
-    });
   }
 
   /// Recupera los activos visibles (no borrados lógicamente).
@@ -140,6 +104,59 @@ class ItemDao {
       reconstruidos.add(Item.fromLocalMap(map, transactions));
     }
     return reconstruidos;
+  }
+
+  //getItemByname
+  Future<Item?> getItembyName(String name) async {
+    final db = await dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'items',
+      where: 'name = ? AND is_deleted = 0',
+      whereArgs: [name],
+    );
+    if (maps.isNotEmpty) {
+      final List<Map<String, dynamic>> txMaps = await db.query(
+        'transactions',
+        where: 'item_id = ? AND is_deleted = 0',
+        whereArgs: [maps.first['id']],
+      );
+      final List<Transaction> transactions = txMaps
+          .map((t) => Transaction.fromLocalMap(t))
+          .toList();
+      return Item.fromLocalMap(maps.first, transactions);
+    }
+    return null;
+  }
+
+  //createItem
+  Future<int> createItem(Item item) async {
+    final db = await dbHelper.database;
+    return await db.insert('items', item.toLocalMap(0));
+  }
+
+  //_______________________________________________---
+  /// Guarda un activo nuevo creado sin conexión.
+  Future<void> saveItemOffline(
+    Item item,
+    double stocks,
+    double price,
+    int userId,
+  ) async {
+    final db = await dbHelper.database;
+    final map = item.toLocalMap(userId);
+    map['is_synced'] = 0;
+
+    final idGenerado = await db.insert('items', map);
+
+    // Creamos la transacción inicial vinculada
+    await db.insert('transactions', {
+      'item_id': idGenerado,
+      'stocks': stocks,
+      'purchase_price': price,
+      'inv_eur': stocks * price,
+      'purchase_date': DateTime.now().toIso8601String(),
+      'is_synced': 0,
+    });
   }
 
   /// Obtiene los ítems creados offline pendientes de subir al servidor.
@@ -174,6 +191,16 @@ class ItemDao {
     await db.update(
       'items',
       {'is_deleted': 1},
+      where: 'id = ?',
+      whereArgs: [localId],
+    );
+  }
+
+  Future<void> markAsSynced(int localId) async {
+    final db = await dbHelper.database;
+    await db.update(
+      'items',
+      {'is_synced': 1},
       where: 'id = ?',
       whereArgs: [localId],
     );

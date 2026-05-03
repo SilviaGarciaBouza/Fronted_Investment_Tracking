@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 // Importaciones de tus archivos
 import 'package:investment_tracking/theme/app_theme.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
-import 'package:investment_tracking/views/AddItem.dart';
+import 'package:investment_tracking/views/AddTransaction.dart';
 import 'package:investment_tracking/views/HomeView.dart';
 import 'package:investment_tracking/views/RegisterView.dart';
 import 'package:investment_tracking/views/LoginView.dart';

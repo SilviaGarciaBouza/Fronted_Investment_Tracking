@@ -1,5 +1,8 @@
-import 'package:flutter/foundation.dart';
-
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:investment_tracking/dao/caegory_dao.dart';
+import 'package:investment_tracking/dao/transaction_dao.dart';
+import 'package:investment_tracking/models/transaction.dart';
+import '../models/category.dart';
 import '../dao/item_dao.dart';
 import '../models/item.dart';
 import '../service/api_service.dart';
@@ -10,7 +13,10 @@ import '../service/api_service.dart';
 class ItemRepository {
   final ApiService _apiService = ApiService();
   final ItemDao _itemDao = ItemDao();
+  final CategoryDao _categoryDao = CategoryDao();
+  final TransactionDao _transactionDao = TransactionDao();
 
+  ///Obtiene los datos del servidor, los guarda en local y devuelve los datos de local
   Future<List<Item>> fetchUserItems(int userId, String token) async {
     try {
       final data = await _apiService.get('/items/user/$userId', token: token);
@@ -18,11 +24,10 @@ class ItemRepository {
           .map((j) => Item.fromJson(j))
           .toList();
       await _itemDao.saveItems(remoteItems, userId);
-
       return await _itemDao.getItems(userId);
     } catch (e) {
       debugPrint("Modo Offline: No se pudo refrescar desde el servidor.");
-      rethrow;
+      return await getLocalItems(userId);
     }
   }
 
@@ -77,27 +82,102 @@ class ItemRepository {
     }
   }
 
-  Future<void> syncPendingData(int userId, String token) async {
-    final List<Item> pendingItems = await _itemDao.getUnsyncedItems(userId);
-    for (var localItem in pendingItems) {
-      try {
-        final response = await _apiService.post('/items', {
-          "name": localItem.name,
-          "userId": userId,
-          "categoryId": localItem.category.id,
-          "initialStocks": localItem.totalStocks,
-          "initialPrice": localItem.transactions.first.purchasePrice,
-        }, token: token);
+  Future<bool> deleteTransaction(
+    int localId,
+    int? serverId,
+    String token,
+    int itemId,
+  ) async {
+    int numTransactionItemsTotal;
+    int numTransactionItems;
+    try {
+      if (serverId != null) {
+        final success = await _apiService.delete(
+          '/transactions/$serverId',
+          token: token,
+        );
 
-        if (response != null) {
-          final serverItem = Item.fromJson(response);
-          await _itemDao.saveItems([serverItem], userId);
+        if (success) {
+          await _transactionDao.deletePhysically(localId);
+          numTransactionItemsTotal = await _transactionDao
+              .getTransactionItemsCountTotal(itemId);
+
+          if (numTransactionItemsTotal == 0) {
+            _itemDao.deleteItemPhysically(itemId);
+          }
+          return true;
+        } else {
+          await _transactionDao.markForDeletion(localId);
+          numTransactionItems = await _transactionDao.getTransactionItemsCount(
+            itemId,
+          );
+          if (numTransactionItems == 0) {
+            _itemDao.markForDeletion(itemId);
+          }
+          return true;
         }
-      } catch (e) {}
+      } else {
+        await _transactionDao.markForDeletion(localId);
+        numTransactionItems = await _transactionDao.getTransactionItemsCount(
+          itemId,
+        );
+        if (numTransactionItems == 0) {
+          _itemDao.markForDeletion(itemId);
+        }
+        return true;
+      }
+    } catch (e) {
+      await _transactionDao.markForDeletion(localId);
+      numTransactionItems = await _transactionDao.getTransactionItemsCount(
+        itemId,
+      );
+      if (numTransactionItems == 0) {
+        _itemDao.markForDeletion(itemId);
+      }
+      return false;
+    }
+  }
+
+  Future<void> saveTransaction(
+    String name,
+    double stocks,
+    double price,
+    int categoryId,
+    int userId,
+    String token,
+  ) async {
+    var item = await _itemDao.getItembyName(name);
+    var itemId = item?.id;
+    if (item == null) {
+      item = Item(
+        name: name,
+        category:
+            await _categoryDao.getCategoryById(categoryId) ??
+            Category(id: 0, name: ""),
+        transactions: [],
+        isSynced: false,
+        currentPrice: 0.0,
+      );
+      itemId = await _itemDao.createItem(item);
     }
 
-    final List<Item> itemsToDelete = await _itemDao.getPendingDeletions(userId);
-    for (var item in itemsToDelete) {
+    final transaction = Transaction(
+      itemId: itemId,
+      stocks: stocks,
+      purchasePrice: price,
+      invEur: stocks * price,
+      purchaseDate: DateTime.now(),
+      isSynced: false,
+    );
+    await _transactionDao.saveTransaction(transaction, itemId!);
+    syncPendingData(userId, token);
+  }
+
+  Future<void> syncPendingData(int userId, String token) async {
+    final List<Item> pendingItemDeletes = await _itemDao.getPendingDeletions(
+      userId,
+    );
+    for (var item in pendingItemDeletes) {
       try {
         if (item.serverId != null) {
           final success = await _apiService.delete(
@@ -105,10 +185,70 @@ class ItemRepository {
             token: token,
           );
           if (success) await _itemDao.deleteItemPhysically(item.id!);
-        } else {
-          await _itemDao.deleteItemPhysically(item.id!);
         }
       } catch (e) {}
+    }
+    final List<Item> pendingItemSync = await _itemDao.getUnsyncedItems(userId);
+    for (var item in pendingItemSync) {
+      try {
+        if (item.serverId == null) {
+          final success = await _apiService.post('/items}', {
+            'name': item.name,
+            'category':
+                await _categoryDao.getCategoryById(item.category.id) ??
+                Category(id: 0, name: ""),
+            'transactions': [],
+            'isSynced': false,
+            'currentPrice': 0.0,
+          }, token: token);
+          if (success) {
+            await _itemDao.markAsSynced(item.id!);
+          }
+        }
+      } catch (e) {
+        // Handle the exception approprately
+      }
+
+      final List<Transaction> pendingTransactionDeletes = await _transactionDao
+          .getPendingToDelete();
+
+      for (var t in pendingTransactionDeletes) {
+        try {
+          if (t.serverId != null) {
+            final success = await _apiService.delete(
+              '/transactions/${t.serverId}',
+              token: token,
+            );
+            if (success) await _transactionDao.deletePhysically(item.id!);
+          }
+        } catch (e) {
+          // Handle the exception approprately
+        }
+      }
+      final List<Transaction> pendingTransactionSync = await _transactionDao
+          .getUnsyncTransactions(userId);
+      for (var transaction in pendingTransactionSync) {
+        try {
+          if (item.serverId == null) {
+            final response = await _apiService.post('/transactions}', {
+              'item_id': transaction.itemId,
+              'stocks': transaction.stocks,
+              'purchase_price': transaction.purchasePrice,
+              'inv_eur': transaction.invEur,
+              'purchase_date': transaction.purchaseDate,
+            }, token: token);
+            if (response != null) {
+              final serverTransaction = Transaction.fromJson(response);
+              await _transactionDao.markAsSynced(
+                transaction.id!,
+                serverTransaction.id!,
+              );
+            }
+          }
+        } catch (e) {
+          // Handle the exception approprately
+        }
+      }
     }
   }
 }
