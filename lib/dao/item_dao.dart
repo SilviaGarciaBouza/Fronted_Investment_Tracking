@@ -227,4 +227,30 @@ class ItemDao {
     }
     return toDelete;
   }
+
+  Future<Item?> getItemById(int id) async {
+    final db = await dbHelper.database;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'items',
+      where: 'id = ? AND is_deleted = 0',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      final List<Map<String, dynamic>> txMaps = await db.query(
+        'transactions',
+        where: 'item_id = ? AND is_deleted = 0',
+        whereArgs: [id],
+      );
+
+      final List<Transaction> transactions = txMaps
+          .map((t) => Transaction.fromLocalMap(t))
+          .toList();
+
+      return Item.fromLocalMap(maps.first, transactions);
+    }
+
+    return null;
+  }
 }

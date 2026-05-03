@@ -174,6 +174,7 @@ class ItemRepository {
   }
 
   Future<void> syncPendingData(int userId, String token) async {
+    //borro items
     final List<Item> pendingItemDeletes = await _itemDao.getPendingDeletions(
       userId,
     );
@@ -186,71 +187,73 @@ class ItemRepository {
           );
           if (success) await _itemDao.deleteItemPhysically(item.id!);
         }
-      } catch (e) {}
+      } catch (e) {
+        debugPrint("Error borrando item: $e");
+      }
     }
+    //borro trans
+    final List<Transaction> pendingTransactionDeletes = await _transactionDao
+        .getPendingToDelete();
+
+    for (var t in pendingTransactionDeletes) {
+      try {
+        if (t.serverId != null) {
+          final success = await _apiService.delete(
+            '/transactions/${t.serverId}',
+            token: token,
+          );
+          if (success) await _transactionDao.deletePhysically(t.id!);
+        }
+      } catch (e) {
+        // Handle the exception approprately
+      }
+    }
+    //subo item
     final List<Item> pendingItemSync = await _itemDao.getUnsyncedItems(userId);
     for (var item in pendingItemSync) {
       try {
         if (item.serverId == null) {
-          final success = await _apiService.post('/items}', {
+          final success = await _apiService.post('/items', {
             'name': item.name,
-            'category':
-                await _categoryDao.getCategoryById(item.category.id) ??
-                Category(id: 0, name: ""),
+            'categoryId': item.category.id,
             'transactions': [],
-            'isSynced': false,
+            // 'isSynced': false,
             'currentPrice': 0.0,
+            'userId': userId,
+            'initialStocks': 0,
           }, token: token);
 
-          if (success != null) {
-            final int newServerId = success['id'];
-
-            await _itemDao.markAsSynced(item.id!, newServerId);
+          if (success != null && success['id'] != null) {
+            await _itemDao.markAsSynced(item.id!, success['id']);
           }
         }
       } catch (e) {
         // Handle the exception approprately
       }
+    }
+    final List<Transaction> pendingTransactionSync = await _transactionDao
+        .getUnsyncTransactions();
 
-      final List<Transaction> pendingTransactionDeletes = await _transactionDao
-          .getPendingToDelete();
+    for (var transaction in pendingTransactionSync) {
+      try {
+        final parentItem = await _itemDao.getItemById(transaction.itemId!);
 
-      for (var t in pendingTransactionDeletes) {
-        try {
-          if (t.serverId != null) {
-            final success = await _apiService.delete(
-              '/transactions/${t.serverId}',
-              token: token,
-            );
-            if (success) await _transactionDao.deletePhysically(item.id!);
+        if (parentItem != null && parentItem.serverId != null) {
+          final response = await _apiService
+              .post('/transactions/item/${transaction.itemId}', {
+                'itemId': parentItem!.serverId,
+                'stocks': transaction.stocks,
+                'purchasePrice': transaction.purchasePrice,
+                'invEur': transaction.invEur,
+                'purchaseDate': transaction.purchaseDate.toIso8601String(),
+              }, token: token);
+          if (response != null && response['id'] != null) {
+            final serverTransaction = Transaction.fromJson(response);
+            await _transactionDao.markAsSynced(transaction.id!, response['id']);
           }
-        } catch (e) {
-          // Handle the exception approprately
         }
-      }
-      final List<Transaction> pendingTransactionSync = await _transactionDao
-          .getUnsyncTransactions();
-      for (var transaction in pendingTransactionSync) {
-        try {
-          if (item.serverId == null) {
-            final response = await _apiService.post('/transactions}', {
-              'item_id': transaction.itemId,
-              'stocks': transaction.stocks,
-              'purchase_price': transaction.purchasePrice,
-              'inv_eur': transaction.invEur,
-              'purchase_date': transaction.purchaseDate,
-            }, token: token);
-            if (response != null) {
-              final serverTransaction = Transaction.fromJson(response);
-              await _transactionDao.markAsSynced(
-                transaction.id!,
-                serverTransaction.id!,
-              );
-            }
-          }
-        } catch (e) {
-          // Handle the exception approprately
-        }
+      } catch (e) {
+        // Handle the exception approprately
       }
     }
   }
