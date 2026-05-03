@@ -146,7 +146,7 @@ class ItemRepository {
     int userId,
     String token,
   ) async {
-    var item = await _itemDao.getItembyName(name);
+    var item = await _itemDao.getItembyName(name, userId);
     var itemId = item?.id;
     if (item == null) {
       item = Item(
@@ -205,7 +205,7 @@ class ItemRepository {
           if (success) await _transactionDao.deletePhysically(t.id!);
         }
       } catch (e) {
-        // Handle the exception approprately
+        debugPrint("Error borrando transacción: $e");
       }
     }
     //subo item
@@ -228,7 +228,7 @@ class ItemRepository {
           }
         }
       } catch (e) {
-        // Handle the exception approprately
+        debugPrint("Error subiendo item: $e");
       }
     }
     final List<Transaction> pendingTransactionSync = await _transactionDao

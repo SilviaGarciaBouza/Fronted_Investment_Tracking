@@ -107,12 +107,12 @@ class ItemDao {
   }
 
   //getItemByname
-  Future<Item?> getItembyName(String name) async {
+  Future<Item?> getItembyName(String name, int userId) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'items',
-      where: 'name = ? AND is_deleted = 0',
-      whereArgs: [name],
+      where: 'name = ? AND user_id = ? AND is_deleted = 0',
+      whereArgs: [name, userId],
     );
     if (maps.isNotEmpty) {
       final List<Map<String, dynamic>> txMaps = await db.query(
