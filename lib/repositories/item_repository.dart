@@ -240,7 +240,7 @@ class ItemRepository {
 
         if (parentItem != null && parentItem.serverId != null) {
           final response = await _apiService
-              .post('/transactions/item/${transaction.itemId}', {
+              .post('/transactions/item/${parentItem.serverId}', {
                 'itemId': parentItem!.serverId,
                 'stocks': transaction.stocks,
                 'purchasePrice': transaction.purchasePrice,
@@ -248,12 +248,11 @@ class ItemRepository {
                 'purchaseDate': transaction.purchaseDate.toIso8601String(),
               }, token: token);
           if (response != null && response['id'] != null) {
-            final serverTransaction = Transaction.fromJson(response);
             await _transactionDao.markAsSynced(transaction.id!, response['id']);
           }
         }
       } catch (e) {
-        // Handle the exception approprately
+        debugPrint("Error subiendo trans: $e");
       }
     }
   }
