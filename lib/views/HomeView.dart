@@ -56,7 +56,7 @@ class _HomeviewState extends State<Homeview> {
                     color: vm.isOnline ? primaryColor : Colors.redAccent,
                   ),
                 ),
-                onPressed: () => {vm.fetchItems()},
+                onPressed: () => {vm.syncPendingData()},
               );
             },
           ),

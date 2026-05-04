@@ -348,7 +348,7 @@ class InvViewModel extends ChangeNotifier {
     });
   }
 
-  Future<void> _syncInBackground() async {
+  Future<void> syncPendingData() async {
     await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
     await fetchItems();
     notifyListeners();
