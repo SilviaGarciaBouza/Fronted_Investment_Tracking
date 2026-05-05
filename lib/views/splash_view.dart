@@ -11,7 +11,7 @@ class SplashView extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = Provider.of<InvViewModel>(context, listen: false);
     return FutureBuilder<bool>(
-      future: vm.hasUserSession(),
+      future: vm.loadUserSession(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
