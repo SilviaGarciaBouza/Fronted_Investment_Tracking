@@ -71,6 +71,7 @@ class InvViewModel extends ChangeNotifier {
   Future<bool> loadUserSession() async {
     final userId = await _sessionRepo.getUserId();
     currentUser = await _userDao.getUser();
+    await fetchItems();
     return userId != null;
   }
 
