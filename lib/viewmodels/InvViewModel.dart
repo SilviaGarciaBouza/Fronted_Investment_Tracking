@@ -11,7 +11,6 @@ import '../models/category.dart';
 import '../repositories/item_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/category_repository.dart';
-import '../dao/user_dao.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 // pra la conexion saber si esta conectado  hicimos flutter pub add connectivity_plus
@@ -22,7 +21,6 @@ class InvViewModel extends ChangeNotifier {
   final TransactionRepository _transactionRepo = TransactionRepository();
   final CategoryRepository _categoryRepo = CategoryRepository();
   final SessionRepository _sessionRepo = SessionRepository();
-  final UserDao _userDao = UserDao();
   Timer? _heartbeatTimer;
   final SettingsService _settings = SettingsService();
 
@@ -70,7 +68,7 @@ class InvViewModel extends ChangeNotifier {
 
   Future<bool> loadUserSession() async {
     final userId = await _sessionRepo.getUserId();
-    currentUser = await _userDao.getUser();
+    currentUser = await _authRepo.loadUser();
     await fetchItems();
     return userId != null;
   }
@@ -149,7 +147,7 @@ class InvViewModel extends ChangeNotifier {
     }
     notifyListeners();
 
-    final savedUser = await _userDao.getUser();
+    final savedUser = await _authRepo.loadUser();
     if (savedUser != null) {
       currentUser = savedUser;
       await fetchItems();
