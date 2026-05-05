@@ -1,0 +1,4 @@
+# Run test suites serially to avoid SQLite file-locking contention.
+# Multiple test files share the same sqflite_ffi database file, so parallel
+# execution causes SQLITE_BUSY_SNAPSHOT errors.
+concurrency: 1
