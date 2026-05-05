@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:investment_tracking/models/transaction.dart';
 import 'package:investment_tracking/repositories/TransactionRepository.dart';
+import 'package:investment_tracking/repositories/session_repository.dart';
 import 'package:investment_tracking/service/SettingsService.dart';
 import '../models/item.dart';
 import '../models/user.dart';
@@ -20,6 +21,7 @@ class InvViewModel extends ChangeNotifier {
   final AuthRepository _authRepo = AuthRepository();
   final TransactionRepository _transactionRepo = TransactionRepository();
   final CategoryRepository _categoryRepo = CategoryRepository();
+  final SessionRepository _sessionRepo = SessionRepository();
   final UserDao _userDao = UserDao();
   Timer? _heartbeatTimer;
   final SettingsService _settings = SettingsService();
@@ -66,6 +68,11 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> hasUserSession() async {
+    final userId = await _sessionRepo.getUserId();
+    return userId != null;
+  }
+
   /// Autentica al usuario y prepara la sesión inicial.
   Future<bool> login(String username, String password) async {
     isLoading = true;
@@ -73,6 +80,7 @@ class InvViewModel extends ChangeNotifier {
     try {
       final result = await _authRepo.login(username, password);
       if (result != null) {
+        _sessionRepo.saveUserId(result.id);
         currentUser = result;
         isOnline = true;
         await fetchItems(); // Carga inicial
@@ -150,6 +158,7 @@ class InvViewModel extends ChangeNotifier {
 
   /// Cierra la sesión y limpia las listas.
   Future<void> logout() async {
+    _sessionRepo.clearUserId();
     currentUser = null;
     itemList = [];
     categories = [];

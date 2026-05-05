@@ -25,7 +25,7 @@ class AuthRepository {
         return user;
       }
     } catch (e) {
-      print("Error Auth: $e");
+      debugPrint("Error Auth: $e");
     }
     return null;
   }
@@ -40,7 +40,7 @@ class AuthRepository {
       });
       return data != null;
     } catch (e) {
-      print("Error en Registro Repository: $e");
+      debugPrint("Error en Registro Repository: $e");
       return false;
     }
   }

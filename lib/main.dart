@@ -1,8 +1,6 @@
-// //AA En main.dart
 import 'package:flutter/material.dart';
+import 'package:investment_tracking/views/splash_view.dart';
 import 'package:provider/provider.dart';
-
-// Importaciones de tus archivos
 import 'package:investment_tracking/theme/app_theme.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
 import 'package:investment_tracking/views/AddTransaction.dart';
@@ -28,10 +26,8 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: "Investment App",
             debugShowCheckedModeBanner: false,
-
             theme: vm.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
-
-            initialRoute: LoginView.routeName,
+            home: const SplashView(),
             routes: {
               LoginView.routeName: (_) => const LoginView(),
               Homeview.routeName: (_) => const Homeview(),
