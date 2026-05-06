@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:investment_tracking/database/database_helper.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' hide Transaction;
 
@@ -6,6 +8,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart' hide Transaction;
 Future<void> setUpDatabase() async {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
+  // use a temporary directory for the database so it doesn't conflict with app
+  await databaseFactory.setDatabasesPath(Directory.systemTemp.path);
   final db = await DatabaseHelper.instance.database;
   await db.execute('PRAGMA busy_timeout = 30000');
   await db.execute('PRAGMA journal_mode = WAL');
