@@ -31,7 +31,7 @@ class TransactionDetailView extends StatelessWidget {
               children: [
                 _col(
                   AppStrings.get('avg', lang),
-                  "${(item.totalInvEur / item.totalStocks).toStringAsFixed(2)}€",
+                  "${item.totalStocks == 0 ? '0.00' : (item.totalInvEur / item.totalStocks).toStringAsFixed(2)}€",
                 ),
                 _col(AppStrings.get('current', lang), "${item.currentPrice}€"),
               ],
