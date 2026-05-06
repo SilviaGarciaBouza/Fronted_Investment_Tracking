@@ -241,7 +241,7 @@ class ItemRepository {
         if (parentItem != null && parentItem.serverId != null) {
           final response = await _apiService
               .post('/transactions/item/${parentItem.serverId}', {
-                'itemId': parentItem!.serverId,
+                'itemId': parentItem.serverId,
                 'stocks': transaction.stocks,
                 'purchasePrice': transaction.purchasePrice,
                 'invEur': transaction.invEur,

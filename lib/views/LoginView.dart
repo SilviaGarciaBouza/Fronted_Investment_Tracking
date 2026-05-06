@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
 import '../utils/app_strings.dart';
 import 'HomeView.dart';
-import 'RegisterView.dart'; // Añadido el ; que faltaba
+import 'RegisterView.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -24,9 +24,7 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  // --- MÉTODO DE LOGIN REUTILIZABLE ---
   Future<void> _handleLogin(InvViewModel vm, BuildContext context) async {
-    // Evita intentar loguearse si ya está cargando
     if (vm.isLoading) return;
 
     if (await vm.login(_userController.text, _passController.text)) {
@@ -36,7 +34,18 @@ class _LoginViewState extends State<LoginView> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppStrings.get('login_error', vm.currentLocale)),
+          content: Center(
+            child: Text(
+              AppStrings.get('login_error', vm.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -116,14 +125,11 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 20),
 
-                      // --- CAMPO CONTRASEÑA ---
                       TextField(
                         controller: _passController,
                         obscureText: _obscureText,
-                        textInputAction:
-                            TextInputAction.done, // Muestra el check de "Hecho"
-                        onSubmitted: (_) =>
-                            _handleLogin(vm, context), // <--- DETECTA EL ENTER
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleLogin(vm, context),
                         style: TextStyle(
                           color: vm.isDarkMode ? Colors.white : Colors.black,
                         ),
@@ -162,10 +168,7 @@ class _LoginViewState extends State<LoginView> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              onPressed: () => _handleLogin(
-                                vm,
-                                context,
-                              ), // Llama al mismo método
+                              onPressed: () => _handleLogin(vm, context),
                               child: Text(
                                 AppStrings.get('btn_access', lang),
                                 style: const TextStyle(
@@ -194,7 +197,7 @@ class _LoginViewState extends State<LoginView> {
                             ),
                             if (!vm.isOnline)
                               Text(
-                                "Offline Mode", // Asegúrate de tener esta key en AppStrings
+                                "Offline Mode",
                                 style: const TextStyle(
                                   color: Colors.redAccent,
                                   fontSize: 10,

@@ -190,8 +190,47 @@ class _HomeviewState extends State<Homeview> {
         floatingActionButton: FloatingActionButton(
           backgroundColor: primaryColor,
           onPressed: () async {
-            await Navigator.pushNamed(context, Additem.routeName);
+            final result = await Navigator.pushNamed(
+              context,
+              Additem.routeName,
+            );
             if (context.mounted) vm.fetchItems();
+
+            if (result == true && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Center(
+                    child: Text(
+                      AppStrings.get('transaction_success', vm.currentLocale),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  backgroundColor: Colors.green.shade700,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Center(
+                    child: Text(
+                      AppStrings.get('transaction_error', vm.currentLocale),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  backgroundColor: Colors.red.shade700,
+                  behavior: SnackBarBehavior.floating,
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
           },
           child: Icon(
             Icons.add,
@@ -399,9 +438,21 @@ class _HomeviewState extends State<Homeview> {
 
               if (context.mounted) {
                 Navigator.pop(context);
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text("Transacción de $assetName eliminada"),
+                    content: Center(
+                      child: Text(
+                        AppStrings.get('transaction_deleted', vm.currentLocale),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    backgroundColor: Colors.green.shade700,
+                    behavior: SnackBarBehavior.floating,
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }

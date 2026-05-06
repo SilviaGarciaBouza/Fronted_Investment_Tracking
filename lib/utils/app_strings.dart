@@ -37,6 +37,10 @@ class AppStrings {
       'tab_cryptos': 'CRIPTOS',
       'tab_currencies': 'DIVISAS',
 
+      'transaction_success': 'Operación realizada con exito',
+      'transaction_error': 'Error al realizar la operación',
+      'transaction_deleted': 'Operación borrada',
+
       /// Add Item
       'new_inv': 'NUEVA INVERSIÓN',
       'cat_label': '1. CATEGORÍA',
@@ -86,6 +90,10 @@ class AppStrings {
       'delete_title': 'Eliminar ',
       'cancel': 'CANCELAR',
       'delete': 'BORRAR',
+
+      'transaction_success': 'Operación realizada con exito',
+      'transaction_error': 'Error realizando a operación',
+      'transaction_deleted': 'Operación borrada',
 
       'tab_all': 'TODO',
       'tab_stocks': 'ACCIÓN S',
@@ -138,6 +146,10 @@ class AppStrings {
       'delete_title': 'Delete ',
       'cancel': 'CANCEL',
       'delete': 'DELETE',
+
+      'transaction_success': 'Transaction completed successfully',
+      'transaction_error': 'Error completing transaction',
+      'transaction_deleted': 'Transaction deleted',
 
       'tab_all': 'ALL',
       'tab_stocks': 'STOCKS',

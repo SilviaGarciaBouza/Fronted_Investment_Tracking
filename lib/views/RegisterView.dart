@@ -165,8 +165,22 @@ class _RegisterViewState extends State<RegisterView> {
 
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.get('reg_success', lang))),
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('reg_success', vm.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Colors.green.shade700,
+          behavior: SnackBarBehavior.floating,
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
+
       Navigator.pop(context);
     }
   }

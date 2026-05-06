@@ -219,7 +219,7 @@ class _AdditemState extends State<Additem> {
                               price: double.parse(_priceController.text),
                               categoryId: _selectedCatId!,
                             );
-                            if (mounted) Navigator.pop(context);
+                            if (mounted) Navigator.pop(context, true);
                           }
                         : null,
                     child: Text(
