@@ -29,12 +29,16 @@ class Transaction {
 
   /// Factory para DTOs del backend.
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
-    serverId: int.parse(json['id'].toString()),
+    serverId: json['id'] != null ? int.parse(json['id'].toString()) : null,
     stocks: (json['stocks'] ?? json['amount'] ?? 0.0).toDouble(),
     purchasePrice: (json['purchasePrice'] ?? json['purchase_price'] ?? 0.0)
         .toDouble(),
     invEur: (json['invEur'] ?? json['inv_eur'] ?? 0.0).toDouble(),
-    purchaseDate: DateTime.parse(json['purchaseDate'] ?? json['purchase_date']),
+    purchaseDate: DateTime.parse(
+      json['purchaseDate'] ??
+          json['purchase_date'] ??
+          DateTime.now().toIso8601String(),
+    ),
     isSynced: true,
   );
 
