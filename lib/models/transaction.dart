@@ -46,9 +46,9 @@ class Transaction {
   factory Transaction.fromLocalMap(Map<String, dynamic> map) => Transaction(
     id: map['id'],
     serverId: map['server_id'],
-    stocks: (map['stocks'] as num).toDouble(),
-    purchasePrice: (map['purchase_price'] as num).toDouble(),
-    invEur: (map['inv_eur'] as num).toDouble(),
+    stocks: (map['stocks'] as num? ?? 0.0).toDouble(),
+    purchasePrice: (map['purchase_price'] as num? ?? 0.0).toDouble(),
+    invEur: (map['inv_eur'] as num? ?? 0.0).toDouble(),
     purchaseDate: DateTime.parse(map['purchase_date']),
     isSynced: map['is_synced'] == 1,
     itemId: map['item_id'],
