@@ -25,7 +25,7 @@ void main() {
       });
     });
 
-    test('getAllCategories devuelve lista del servidor y la persiste', () async {
+    test('getAllCategories returns list from server and persists it', () async {
       final categories =
           await CategoryRepository().getAllCategories('token_abc');
 
@@ -33,7 +33,7 @@ void main() {
       expect(categories.any((c) => c.name == 'Stocks'), isTrue);
     });
 
-    test('getAllCategories devuelve lista desde SQLite cuando el servidor falla',
+    test('getAllCategories returns list from SQLite when server fails',
         () async {
       final db = await DatabaseHelper.instance.database;
       await db.insert('categories', {'name': 'Stocks'});

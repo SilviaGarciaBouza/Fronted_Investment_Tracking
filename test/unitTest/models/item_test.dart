@@ -7,8 +7,8 @@ void main() {
   final testCategory = Category(id: 1, name: 'Criptomoneda');
   final date = DateTime.now();
 
-  group('Item: cálculos financieros', () {
-    test('calcula totales correctamente con varias transacciones', () {
+  group('Item: financial calculations', () {
+    test('calculates totals correctly with multiple transactions', () {
       final item = Item(
         name: 'Bitcoin',
         category: testCategory,
@@ -35,7 +35,7 @@ void main() {
       expect(item.profitEur, 12000.0);
     });
 
-    test('calcula el porcentaje de beneficio correctamente', () {
+    test('calculates profit percentage correctly', () {
       final item = Item(
         name: 'Ethereum',
         category: testCategory,
@@ -53,7 +53,7 @@ void main() {
       expect(item.profitPercent, 100.0);
     });
 
-    test('devuelve 0% de beneficio si no hay transacciones (evita división por cero)', () {
+    test('returns 0% profit when there are no transactions (avoids division by zero)', () {
       final item = Item(
         name: 'Test',
         category: testCategory,
@@ -65,8 +65,8 @@ void main() {
     });
   });
 
-  group('Item: serialización y mapeo', () {
-    test('fromLocalMap reconstruye el objeto desde SQLite', () {
+  group('Item: serialization and mapping', () {
+    test('fromLocalMap reconstructs the object from SQLite', () {
       final localMap = {
         'id': 1,
         'server_id': 101,
@@ -85,7 +85,7 @@ void main() {
       expect(item.isSynced, true);
     });
 
-    test('fromJson parsea el DTO del backend con transacciones anidadas', () {
+    test('fromJson parses the backend DTO with nested transactions', () {
       final json = {
         'id': '5',
         'name': 'Tesla',
@@ -111,7 +111,7 @@ void main() {
       expect(item.isSynced, true);
     });
 
-    test('toLocalMap serializa booleanos como enteros para SQLite', () {
+    test('toLocalMap serializes booleans as integers for SQLite', () {
       final item = Item(
         name: 'Gold',
         category: Category(id: 3, name: 'Materias primas'),

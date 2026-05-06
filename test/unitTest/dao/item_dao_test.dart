@@ -25,7 +25,7 @@ void main() {
       catId = await db.insert('categories', {'name': 'TestCategory'});
     });
 
-    test('getItems devuelve items insertados para el usuario', () async {
+    test('getItems returns items inserted for the user', () async {
       final db = await DatabaseHelper.instance.database;
       await db.insert('items', {
         'user_id': userId,
@@ -41,7 +41,7 @@ void main() {
       expect(items.any((item) => item.name == 'TestItem'), isTrue);
     });
 
-    test('createItem y getItemById devuelven el mismo item', () async {
+    test('createItem and getItemById return the same item', () async {
       final item = Item(
         name: 'TestAsset',
         category: Category(id: catId, name: 'TestCategory'),
@@ -56,7 +56,7 @@ void main() {
       expect(fetched?.name, 'TestAsset');
     });
 
-    test('markForDeletion pone is_deleted=1', () async {
+    test('markForDeletion sets is_deleted=1', () async {
       final db = await DatabaseHelper.instance.database;
       final localId = await db.insert('items', {
         'user_id': userId,
@@ -73,7 +73,7 @@ void main() {
       expect(rows.first['is_deleted'], 1);
     });
 
-    test('markAsSynced actualiza server_id e is_synced=1', () async {
+    test('markAsSynced updates server_id and is_synced=1', () async {
       final db = await DatabaseHelper.instance.database;
       final localId = await db.insert('items', {
         'user_id': userId,

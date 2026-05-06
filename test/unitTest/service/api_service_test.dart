@@ -23,12 +23,12 @@ void main() {
   group('ApiService', () {
     final api = ApiService();
 
-    test('GET devuelve el cuerpo decodificado en éxito', () async {
+    test('GET returns decoded body on success', () async {
       final result = await api.get('/test-get');
       expect(result['result'], 'ok');
     });
 
-    test('POST devuelve el cuerpo en éxito y null en 401', () async {
+    test('POST returns body on success and null on 401', () async {
       final success = await api.post('/test-post', {'dummy': 'data'});
       expect(success['id'], 123);
 
@@ -36,7 +36,7 @@ void main() {
       expect(fail, isNull);
     });
 
-    test('DELETE devuelve true en éxito', () async {
+    test('DELETE returns true on success', () async {
       final deleted = await api.delete('/test-delete');
       expect(deleted, true);
     });

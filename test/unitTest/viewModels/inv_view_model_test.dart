@@ -50,7 +50,7 @@ void main() {
   tearDown(clearAllTables);
 
   group('InvViewModel: computed getters', () {
-    test('totalCurrentValue es 0 cuando no hay transacciones', () {
+    test('totalCurrentValue is 0 when there are no transactions', () {
       final vm = InvViewModel();
       vm.itemList = [
         Item(
@@ -63,7 +63,7 @@ void main() {
       expect(vm.totalCurrentValue, 0.0);
     });
 
-    test('totalInvestment, totalPnL y totalPnLPercent con datos reales', () {
+    test('totalInvestment, totalPnL and totalPnLPercent with real data', () {
       final vm = InvViewModel();
       vm.itemList = [
         Item(
@@ -86,14 +86,14 @@ void main() {
     });
 
     test(
-      'totalPnLPercent es 0 cuando no hay inversión (evita división por cero)',
+      'totalPnLPercent is 0 when there is no investment (avoids division by zero)',
       () {
         expect(InvViewModel().totalPnLPercent, 0.0);
       },
     );
 
     test(
-      'allTransactions agrega transacciones de todos los items ordenadas por fecha descendente',
+      'allTransactions aggregates transactions from all items sorted by date descending',
       () {
         final vm = InvViewModel();
         final cat = Category(id: 1, name: 'Test');
@@ -132,8 +132,8 @@ void main() {
     );
   });
 
-  group('InvViewModel: preferencias', () {
-    test('toggleTheme invierte isDarkMode y lo persiste', () async {
+  group('InvViewModel: preferences', () {
+    test('toggleTheme toggles isDarkMode and persists it', () async {
       final vm = InvViewModel();
       final before = vm.isDarkMode;
       vm.toggleTheme();
@@ -144,7 +144,7 @@ void main() {
       expect(vm2.isDarkMode, !before);
     });
 
-    test('setLanguage actualiza currentLocale y lo persiste', () async {
+    test('setLanguage updates currentLocale and persists it', () async {
       final vm = InvViewModel();
       vm.setLanguage('gl');
       expect(vm.currentLocale, 'gl');
@@ -155,20 +155,18 @@ void main() {
     });
 
     test(
-      'initSettings carga valores del sistema cuando no hay preferencias guardadas',
+      'initSettings loads system values when no preferences are stored',
       () async {
         final vm = InvViewModel();
         await vm.initSettings();
-        // En el entorno de test, el brillo de la plataforma es light → isDarkMode = false
         expect(vm.isDarkMode, isFalse);
-        // El locale debe ser uno de los idiomas soportados o el fallback 'es'
         expect(['es', 'gl', 'en'].contains(vm.currentLocale), isTrue);
       },
     );
   });
 
-  group('InvViewModel: sesión', () {
-    test('logout limpia currentUser, itemList y categories', () async {
+  group('InvViewModel: session', () {
+    test('logout clears currentUser, itemList and categories', () async {
       final vm = InvViewModel();
       vm.itemList = [
         Item(
@@ -187,14 +185,14 @@ void main() {
     });
 
     test(
-      'hasUserSession devuelve false cuando no hay sesión guardada',
+      'loadUserSession returns false when no session is stored',
       () async {
         expect(await InvViewModel().loadUserSession(), isFalse);
       },
     );
 
     test(
-      'hasUserSession devuelve true cuando hay userId en SharedPreferences',
+      'loadUserSession returns true when userId is in SharedPreferences',
       () async {
         SharedPreferences.setMockInitialValues({'current_user_id': '42'});
         expect(await InvViewModel().loadUserSession(), isTrue);
@@ -202,7 +200,7 @@ void main() {
     );
 
     test(
-      'checkLocalSession devuelve true y establece currentUser cuando hay usuario en SQLite',
+      'checkLocalSession returns true and sets currentUser when user is in SQLite',
       () async {
         final db = await DatabaseHelper.instance.database;
         await db.insert('users', {
@@ -220,16 +218,16 @@ void main() {
     );
 
     test(
-      'checkLocalSession devuelve false cuando no hay usuario en SQLite',
+      'checkLocalSession returns false when no user is in SQLite',
       () async {
         expect(await InvViewModel().checkLocalSession(), isFalse);
       },
     );
   });
 
-  group('InvViewModel: autenticación', () {
+  group('InvViewModel: authentication', () {
     test(
-      'login devuelve true, establece currentUser y marca isOnline',
+      'login returns true, sets currentUser and marks isOnline',
       () async {
         final vm = InvViewModel();
         final success = await vm.login('alice', '1234');
@@ -241,7 +239,7 @@ void main() {
       },
     );
 
-    test('register devuelve true cuando el servidor responde 201', () async {
+    test('register returns true when server responds with 201', () async {
       expect(
         await InvViewModel().register('nuevo', '1234', 'nuevo@test.com'),
         isTrue,
@@ -249,9 +247,9 @@ void main() {
     });
   });
 
-  group('InvViewModel: carga de datos', () {
+  group('InvViewModel: data loading', () {
     test(
-      'fetchCategories rellena la lista cuando hay usuario activo',
+      'fetchCategories populates the list when user is active',
       () async {
         final vm = InvViewModel();
         await vm.login('alice', '1234');
@@ -263,7 +261,7 @@ void main() {
       },
     );
 
-    test('fetchCategories no hace nada si no hay usuario activo', () async {
+    test('fetchCategories does nothing when no user is active', () async {
       final vm = InvViewModel();
 
       await vm.fetchCategories();

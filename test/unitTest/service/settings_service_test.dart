@@ -8,7 +8,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('SettingsService', () {
-    test('persiste y recupera el idioma', () async {
+    test('persists and retrieves the language', () async {
       final settings = SettingsService();
 
       await settings.saveLanguage('gl');
@@ -16,7 +16,7 @@ void main() {
       expect(await settings.getLanguage(), 'gl');
     });
 
-    test('persiste y recupera el tema (oscuro/claro)', () async {
+    test('persists and retrieves the theme (dark/light)', () async {
       final settings = SettingsService();
 
       await settings.saveTheme(true);
@@ -24,7 +24,7 @@ void main() {
       expect(await settings.getTheme(), true);
     });
 
-    test('devuelve null si no hay valores guardados', () async {
+    test('returns null when no values are stored', () async {
       final settings = SettingsService();
 
       expect(await settings.getLanguage(), isNull);

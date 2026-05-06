@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:investment_tracking/models/transaction.dart';
 
 void main() {
-  group('Transaction: serialización y mapeo', () {
-    test('fromJson parsea correctamente una fecha ISO8601', () {
+  group('Transaction: serialization and mapping', () {
+    test('fromJson correctly parses an ISO8601 date', () {
       final json = {
         'id': 1,
         'stocks': 1.5,
@@ -18,7 +18,7 @@ void main() {
       expect(tx.purchaseDate.month, 4);
     });
 
-    test('toLocalMap convierte is_synced a entero para SQLite', () {
+    test('toLocalMap converts is_synced to integer for SQLite', () {
       final tx = Transaction(
         stocks: 1.0,
         purchasePrice: 50.0,
@@ -33,7 +33,7 @@ void main() {
       expect(map['item_id'], 10);
     });
 
-    test('fromLocalMap reconstruye el objeto desde SQLite', () {
+    test('fromLocalMap reconstructs the object from SQLite', () {
       final map = {
         'id': 10,
         'server_id': 20,

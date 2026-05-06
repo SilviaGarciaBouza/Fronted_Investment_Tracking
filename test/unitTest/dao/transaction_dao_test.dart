@@ -29,7 +29,7 @@ void main() {
   tearDown(clearAllTables);
 
   group('TransactionDao', () {
-    test('getUnsyncedTransactions filtra por is_synced=0', () async {
+    test('getUnsyncedTransactions filters by is_synced=0', () async {
       final db = await DatabaseHelper.instance.database;
       final itemId = await _seedItem();
       await db.insert('transactions', {
@@ -55,7 +55,7 @@ void main() {
       expect((unsynced.first['stocks'] as num).toDouble(), 5.0);
     });
 
-    test('saveTransaction inserta fila y getTransactionItemsCount devuelve 1',
+    test('saveTransaction inserts row and getTransactionItemsCount returns 1',
         () async {
       final itemId = await _seedItem();
       final tx = Transaction(
@@ -70,7 +70,7 @@ void main() {
       expect(await TransactionDao().getTransactionItemsCount(itemId), 1);
     });
 
-    test('markForDeletion pone is_deleted=1', () async {
+    test('markForDeletion sets is_deleted=1', () async {
       final db = await DatabaseHelper.instance.database;
       final itemId = await _seedItem();
       final txId = await db.insert('transactions', {
@@ -93,7 +93,7 @@ void main() {
       expect(rows.first['is_deleted'], 1);
     });
 
-    test('markAsSynced actualiza server_id e is_synced=1', () async {
+    test('markAsSynced updates server_id and is_synced=1', () async {
       final db = await DatabaseHelper.instance.database;
       final itemId = await _seedItem();
       final txId = await db.insert('transactions', {

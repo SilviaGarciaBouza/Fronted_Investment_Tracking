@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:investment_tracking/models/user.dart';
 
 void main() {
-  group('User: serialización y mapeo', () {
-    test('fromJson mapea token y datos de usuario correctamente', () {
+  group('User: serialization and mapping', () {
+    test('fromJson maps token and user data correctly', () {
       final json = {
         'token': 'jwt_secret_token',
         'user': {'id': 10, 'username': 'admin', 'email': 'admin@test.com'},
@@ -16,7 +16,7 @@ void main() {
       expect(user.token, 'jwt_secret_token');
     });
 
-    test('fromJson acepta tanto JSON anidado (API) como plano (caché)', () {
+    test('fromJson accepts both nested (API) and flat (cache) JSON', () {
       final jsonAnidado = {
         'token': 'abc',
         'user': {'id': 1, 'username': 'lucia', 'email': 'l@test.com'},

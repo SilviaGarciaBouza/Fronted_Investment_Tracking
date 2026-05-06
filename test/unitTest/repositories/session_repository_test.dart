@@ -8,7 +8,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('SessionRepository', () {
-    test('saveUserId y getUserId round-trip', () async {
+    test('saveUserId and getUserId round-trip', () async {
       final repo = SessionRepository();
 
       await repo.saveUserId(42);
@@ -16,7 +16,7 @@ void main() {
       expect(await repo.getUserId(), 42);
     });
 
-    test('clearUserId hace que getUserId devuelva null', () async {
+    test('clearUserId makes getUserId return null', () async {
       final repo = SessionRepository();
       await repo.saveUserId(42);
 
@@ -25,7 +25,7 @@ void main() {
       expect(await repo.getUserId(), isNull);
     });
 
-    test('getUserId devuelve null si no hay userId guardado', () async {
+    test('getUserId returns null when no userId is stored', () async {
       expect(await SessionRepository().getUserId(), isNull);
     });
   });

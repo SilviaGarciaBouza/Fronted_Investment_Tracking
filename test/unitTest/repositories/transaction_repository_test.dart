@@ -45,7 +45,7 @@ void main() {
       });
     });
 
-    test('deleteTransaction sin serverId borra físicamente y devuelve true',
+    test('deleteTransaction without serverId deletes physically and returns true',
         () async {
       final db = await DatabaseHelper.instance.database;
       final localId = await db.insert('transactions', {
@@ -70,7 +70,7 @@ void main() {
       expect(rows, isEmpty);
     });
 
-    test('getHomeTransactions devuelve lista vacía cuando no hay transacciones',
+    test('getHomeTransactions returns empty list when there are no transactions',
         () async {
       final txs =
           await TransactionRepository().getHomeTransactions(userId, 'token');
@@ -78,7 +78,7 @@ void main() {
       expect(txs, isEmpty);
     });
 
-    test('createTransaction guarda localmente y sincroniza con servidor',
+    test('createTransaction saves locally and syncs with server',
         () async {
       final tx = Transaction(
         itemId: itemId,

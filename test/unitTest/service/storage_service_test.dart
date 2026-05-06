@@ -8,7 +8,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('StorageService', () {
-    test('write y read round-trip', () async {
+    test('write and read round-trip', () async {
       final storage = StorageService();
 
       await storage.write('myKey', 'myValue');
@@ -16,7 +16,7 @@ void main() {
       expect(await storage.read('myKey'), 'myValue');
     });
 
-    test('delete hace que read devuelva null', () async {
+    test('delete makes read return null', () async {
       final storage = StorageService();
       await storage.write('myKey', 'myValue');
 
@@ -25,7 +25,7 @@ void main() {
       expect(await storage.read('myKey'), isNull);
     });
 
-    test('read de clave inexistente devuelve null', () async {
+    test('read of non-existent key returns null', () async {
       expect(await StorageService().read('nonExistent'), isNull);
     });
   });

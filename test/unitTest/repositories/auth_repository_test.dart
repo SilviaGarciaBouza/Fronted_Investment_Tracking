@@ -28,7 +28,7 @@ void main() {
   tearDown(clearAllTables);
 
   group('AuthRepository', () {
-    test('login devuelve un usuario válido con token', () async {
+    test('login returns a valid user with token', () async {
       final user = await AuthRepository().login('silvia', '1234');
 
       expect(user, isNotNull);
@@ -36,14 +36,14 @@ void main() {
       expect(user?.username, 'silvia');
     });
 
-    test('register devuelve true si el servidor responde con éxito', () async {
+    test('register returns true when server responds with success', () async {
       final result =
           await AuthRepository().register('nuevo', '1234', 'nuevo@test.com');
 
       expect(result, true);
     });
 
-    test('checkConnection devuelve true con el servidor accesible', () async {
+    test('checkConnection returns true when server is reachable', () async {
       expect(await AuthRepository().checkConnection(), true);
     });
   });

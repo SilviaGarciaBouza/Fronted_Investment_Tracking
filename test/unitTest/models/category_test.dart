@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:investment_tracking/models/category.dart';
 
 void main() {
-  group('Category: serialización y mapeo', () {
-    test('fromJson convierte ID de String a int', () {
+  group('Category: serialization and mapping', () {
+    test('fromJson converts ID from String to int', () {
       final json = {'id': '5', 'name': 'Divisa'};
 
       final cat = Category.fromJson(json);

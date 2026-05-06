@@ -40,7 +40,7 @@ void main() {
       catId = await db.insert('categories', {'name': 'Metals'});
     });
 
-    test('getLocalItems devuelve items del usuario en SQLite', () async {
+    test('getLocalItems returns user items from SQLite', () async {
       final db = await DatabaseHelper.instance.database;
       await db.insert('items', {
         'user_id': userId,
@@ -56,7 +56,7 @@ void main() {
       expect(items.any((i) => i.name == 'Silver'), isTrue);
     });
 
-    test('deleteItem sin serverId borra físicamente y devuelve true', () async {
+    test('deleteItem without serverId deletes physically and returns true', () async {
       final db = await DatabaseHelper.instance.database;
       final localId = await db.insert('items', {
         'user_id': userId,
@@ -75,7 +75,7 @@ void main() {
       expect(rows, isEmpty);
     });
 
-    test('saveItem crea el item localmente cuando el servidor falla', () async {
+    test('saveItem creates item locally when server fails', () async {
       HttpOverrides.global = MockHttpOverrides((_) async {
         throw const SocketException('sin red');
       });
