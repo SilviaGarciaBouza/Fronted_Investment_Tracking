@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:investment_tracking/models/transaction.dart';
 import 'package:investment_tracking/repositories/TransactionRepository.dart';
@@ -275,7 +276,11 @@ class InvViewModel extends ChangeNotifier {
     required double price,
   }) async {
     if (currentUser == null) return;
-
+    final parentItem = itemList.firstWhereOrNull((i) => i.id == itemId);
+    if (parentItem == null) {
+      debugPrint("ParentItem es null para itemId: $itemId");
+      return;
+    }
     isLoading = true;
     notifyListeners();
 
@@ -288,7 +293,6 @@ class InvViewModel extends ChangeNotifier {
         purchaseDate: DateTime.now(),
         isSynced: false, // Por defecto false, el repo decidirá
       );
-      final parentItem = itemList.firstWhere((i) => i.id == itemId);
       // 2. LLAMAR AL REPOSITORIO (Esto es lo que faltaba)
       // El repo intentará MariaDB, si falla, lo dejará en SQLite (is_synced = 0)
       await _transactionRepo.createTransaction(

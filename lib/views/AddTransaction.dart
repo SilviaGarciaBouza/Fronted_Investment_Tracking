@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
@@ -108,11 +109,15 @@ class _AdditemState extends State<Additem> {
                   )
                   .toList(),
               onChanged: (val) {
+                final catName = vm.categories
+                    .firstWhereOrNull((c) => c.id == val)
+                    ?.name;
+                if (catName != null) {
+                  return;
+                }
                 setState(() {
                   _selectedCatId = val;
-                  _selectedCategoryName = vm.categories
-                      .firstWhere((c) => c.id == val)
-                      .name;
+                  _selectedCategoryName = catName;
                   _selectedAssetName = null;
                 });
               },

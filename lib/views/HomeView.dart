@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/InvViewModel.dart';
@@ -331,10 +332,12 @@ class _HomeviewState extends State<Homeview> {
     Color text,
   ) {
     // Buscamos el nombre del activo al que pertenece esta transacción
-    final parentItem = vm.itemList.firstWhere(
+    final parentItem = vm.itemList.firstWhereOrNull(
       (item) => item.transactions.contains(tx),
     );
-
+    if (parentItem == null) {
+      return SizedBox.shrink();
+    }
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
