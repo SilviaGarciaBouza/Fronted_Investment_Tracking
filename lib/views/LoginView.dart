@@ -33,6 +33,12 @@ class _LoginViewState extends State<LoginView> {
       if (mounted) {
         Navigator.pushReplacementNamed(context, Homeview.routeName);
       }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.get('login_error', vm.currentLocale)),
+        ),
+      );
     }
   }
 

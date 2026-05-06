@@ -3,6 +3,7 @@ class AppStrings {
     'es': {
       /// Login y Register
       'login_title': 'GESTOR DE INVERSIONES',
+      'login_error': 'Error al loguearse',
       'reg_title': 'NUEVA CUENTA',
       'user': 'Usuario',
       'pass': 'Contraseña',
@@ -59,6 +60,7 @@ class AppStrings {
     },
     'gl': {
       'login_title': 'XESTOR DE INVERSIÓNS',
+      'login_error': 'Error logueando',
       'reg_title': 'NOVA CONTA',
       'user': 'Usuario',
       'pass': 'Contrasinal',
@@ -110,6 +112,7 @@ class AppStrings {
     },
     'en': {
       'login_title': 'INVESTMENT MANAGER',
+      'login_error': 'Error logging in',
       'reg_title': 'NEW ACCOUNT',
       'user': 'Username',
       'pass': 'Password',
