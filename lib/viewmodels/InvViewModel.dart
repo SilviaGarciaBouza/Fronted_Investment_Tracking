@@ -230,6 +230,7 @@ class InvViewModel extends ChangeNotifier {
   }
 
   Future<String> deleteItem(int localId, int? serverId) async {
+    if (currentUser == null) return "Error: Sin sesión";
     isLoading = true;
     notifyListeners();
 
