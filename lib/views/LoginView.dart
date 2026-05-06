@@ -17,6 +17,13 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _passController = TextEditingController();
   bool _obscureText = true;
 
+  @override
+  void dispose() {
+    _userController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
   // --- MÉTODO DE LOGIN REUTILIZABLE ---
   Future<void> _handleLogin(InvViewModel vm, BuildContext context) async {
     // Evita intentar loguearse si ya está cargando

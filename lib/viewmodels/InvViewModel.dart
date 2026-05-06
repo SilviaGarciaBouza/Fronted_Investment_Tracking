@@ -181,6 +181,7 @@ class InvViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
+      categories = await _categoryRepo.getAllCategories(currentUser!.token);
       itemList = await _itemRepo.fetchUserItems(
         currentUser!.id,
         currentUser!.token,

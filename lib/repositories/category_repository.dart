@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:investment_tracking/dao/caegory_dao.dart';
 import '../models/category.dart';
 import '../service/api_service.dart';
@@ -24,7 +25,7 @@ class CategoryRepository {
       await _categoryDao.saveCategories(categories);
       return categories;
     } catch (e) {
-      print("Categorías desde SQLite (Offline): $e");
+      debugPrint("Categorías desde SQLite (Offline): $e");
       return await _categoryDao.getCategories();
     }
   }
