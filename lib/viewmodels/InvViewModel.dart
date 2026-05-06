@@ -83,7 +83,6 @@ class InvViewModel extends ChangeNotifier {
         _sessionRepo.saveUserId(result.id);
         currentUser = result;
         isOnline = true;
-        await fetchItems(); // Carga inicial
         return true;
       }
       return false;
