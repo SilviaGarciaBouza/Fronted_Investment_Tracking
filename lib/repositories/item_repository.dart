@@ -170,7 +170,7 @@ class ItemRepository {
       isSynced: false,
     );
     await _transactionDao.saveTransaction(transaction, itemId!);
-    syncPendingData(userId, token);
+    await syncPendingData(userId, token);
   }
 
   Future<void> syncPendingData(int userId, String token) async {
