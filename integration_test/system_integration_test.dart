@@ -8,7 +8,7 @@ import 'package:investment_tracking/main.dart' as app;
 // The test user ('silvia' / '1234') must have at least one transaction.
 //
 // Run with:
-//   flutter drive --target=integration_test/system_integration_test.dart
+//   flutter test -d linux integration_test/system_integration_test.dart
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -34,8 +34,9 @@ void main() {
       expect(find.text('MI CARTERA'), findsOneWidget);
 
       // Record the number of deletable transactions before deletion
-      final deletesBefore =
-          tester.widgetList(find.byIcon(Icons.delete_outline)).length;
+      final deletesBefore = tester
+          .widgetList(find.byIcon(Icons.delete_outline))
+          .length;
       expect(
         deletesBefore,
         greaterThan(0),
@@ -58,8 +59,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify the transaction was removed from the UI
-      final deletesAfter =
-          tester.widgetList(find.byIcon(Icons.delete_outline)).length;
+      final deletesAfter = tester
+          .widgetList(find.byIcon(Icons.delete_outline))
+          .length;
       expect(deletesAfter, lessThan(deletesBefore));
 
       // Verify we are still on the portfolio screen (no crash, no navigation)
