@@ -18,20 +18,25 @@ void main() {
       expect(tx.purchaseDate.month, 4);
     });
 
-    test('toLocalMap converts is_synced to integer for SQLite', () {
-      final tx = Transaction(
-        stocks: 1.0,
-        purchasePrice: 50.0,
-        invEur: 50.0,
-        purchaseDate: DateTime.now(),
-        isSynced: true,
-      );
+    test(
+      'toLocalMap converts is_synced and is_deleted to integer for SQLite',
+      () {
+        final tx = Transaction(
+          stocks: 1.0,
+          purchasePrice: 50.0,
+          invEur: 50.0,
+          purchaseDate: DateTime.now(),
+          isSynced: true,
+          isDeleted: true,
+        );
 
-      final map = tx.toLocalMap(10);
+        final map = tx.toLocalMap(10);
 
-      expect(map['is_synced'], 1);
-      expect(map['item_id'], 10);
-    });
+        expect(map['is_synced'], 1);
+        expect(map['is_deleted'], 1);
+        expect(map['item_id'], 10);
+      },
+    );
 
     test('fromLocalMap reconstructs the object from SQLite', () {
       final map = {

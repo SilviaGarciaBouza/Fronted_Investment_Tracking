@@ -61,5 +61,6 @@ class Transaction {
     'inv_eur': invEur,
     'purchase_date': purchaseDate.toIso8601String(),
     'is_synced': isSynced ? 1 : 0,
+    'is_deleted': isDeleted ? 1 : 0,
   };
 }
