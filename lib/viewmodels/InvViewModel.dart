@@ -80,7 +80,7 @@ class InvViewModel extends ChangeNotifier {
     try {
       final result = await _authRepo.login(username, password);
       if (result != null) {
-        _sessionRepo.saveUserId(result.id);
+        await _sessionRepo.saveUserId(result.id);
         currentUser = result;
         isOnline = true;
         return true;
@@ -157,7 +157,7 @@ class InvViewModel extends ChangeNotifier {
 
   /// Cierra la sesión y limpia las listas.
   Future<void> logout() async {
-    _sessionRepo.clearUserId();
+    await _sessionRepo.clearUserId();
     currentUser = null;
     itemList = [];
     categories = [];
@@ -208,7 +208,7 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _itemRepo.saveTransaction(
+      await _itemRepo.saveTransaction(
         name,
         stocks,
         price,

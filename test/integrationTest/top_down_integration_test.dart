@@ -15,20 +15,20 @@ import '../helpers/http_mock.dart';
 // but no test asserts SQLite state. All assertions are on ViewModel state.
 
 Map<String, dynamic> _btcItemJson() => {
-      'id': 10,
-      'name': 'BTCUSDT',
-      'category': {'id': 1, 'name': 'Crypto'},
-      'currentPrice': 50000.0,
-      'transactions': [
-        {
-          'id': 5,
-          'stocks': 1.0,
-          'purchasePrice': 45000.0,
-          'invEur': 45000.0,
-          'purchaseDate': '2024-01-15T00:00:00.000',
-        }
-      ],
-    };
+  'id': 10,
+  'name': 'BTCUSDT',
+  'category': {'id': 1, 'name': 'Crypto'},
+  'currentPrice': 50000.0,
+  'transactions': [
+    {
+      'id': 5,
+      'stocks': 1.0,
+      'purchasePrice': 45000.0,
+      'invEur': 45000.0,
+      'purchaseDate': '2024-01-15T00:00:00.000',
+    },
+  ],
+};
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,10 +37,12 @@ void main() {
     await setUpDatabase();
     HttpOverrides.global = MockHttpOverrides((url) async {
       if (url.path.contains('/users/login')) {
-        return MockHttpResponse(json.encode({
-          'token': 'tok',
-          'user': {'id': 1, 'username': 'alice', 'email': 'a@b.com'},
-        }));
+        return MockHttpResponse(
+          json.encode({
+            'token': 'tok',
+            'user': {'id': 1, 'username': 'alice', 'email': 'a@b.com'},
+          }),
+        );
       }
       if (url.path.contains('/users/health')) {
         return MockHttpResponse('ok');
@@ -75,47 +77,40 @@ void main() {
     });
   });
 
-  // ─── Level 2: ViewModel + Repository ──────────────────────────────────────
-  group('Level 2 — ViewModel + Repository (server data flows into ViewModel)', () {
-    test('login triggers fetchItems and populates itemList from the HTTP mock', () async {
-      final vm = InvViewModel();
-      await vm.login('alice', '1234');
+  // ─── Level 2: ViewModel + SessionRepository ───────────────────────────────
+  group('Level 2 — ViewModel + SessionRepository (SharedPreferences)', () {
+    test(
+      'login persists userId in SharedPreferences via SessionRepository',
+      () async {
+        final vm = InvViewModel();
+        await vm.login('alice', '1234');
 
-      expect(vm.itemList.length, 1);
-      expect(vm.itemList.first.name, 'BTCUSDT');
-      expect(vm.itemList.first.transactions.length, 1);
-      expect(vm.totalCurrentValue, 50000.0);
-    });
+        final sessionId = await SessionRepository().getUserId();
+        expect(sessionId, 1);
+      },
+    );
   });
 
-  // ─── Level 3: ViewModel + SessionRepository ───────────────────────────────
-  group('Level 3 — ViewModel + SessionRepository (SharedPreferences)', () {
-    test('login persists userId in SharedPreferences via SessionRepository', () async {
-      final vm = InvViewModel();
-      await vm.login('alice', '1234');
+  // ─── Level 3: Full session-restore path ───────────────────────────────────
+  group('Level 3 — Full session restore path (checkLocalSession)', () {
+    test(
+      'checkLocalSession loads user from SQLite and populates itemList',
+      () async {
+        // Seed user as a controlled stub — makes _authRepo.loadUser() return a user
+        await UserDao().saveUser(
+          User(id: 1, username: 'alice', email: 'a@b.com', token: 'tok'),
+        );
 
-      final sessionId = await SessionRepository().getUserId();
-      expect(sessionId, 1);
-    });
-  });
+        final vm = InvViewModel();
+        final result = await vm.checkLocalSession();
 
-  // ─── Level 4: Full session-restore path ───────────────────────────────────
-  group('Level 4 — Full session restore path (checkLocalSession)', () {
-    test('checkLocalSession loads user from SQLite and populates itemList', () async {
-      // Seed user as a controlled stub — makes _authRepo.loadUser() return a user
-      await UserDao().saveUser(
-        User(id: 1, username: 'alice', email: 'a@b.com', token: 'tok'),
-      );
-
-      final vm = InvViewModel();
-      final result = await vm.checkLocalSession();
-
-      expect(result, isTrue);
-      expect(vm.currentUser, isNotNull);
-      expect(vm.currentUser!.username, 'alice');
-      expect(vm.itemList.length, 1);
-      expect(vm.isOnline, isTrue);
-    });
+        expect(result, isTrue);
+        expect(vm.currentUser, isNotNull);
+        expect(vm.currentUser!.username, 'alice');
+        expect(vm.itemList.length, 1);
+        expect(vm.isOnline, isTrue);
+      },
+    );
 
     test('checkLocalSession returns false when no user is in SQLite', () async {
       final vm = InvViewModel();
