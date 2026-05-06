@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:investment_tracking/main.dart' as app;
+import 'helpers/widget_tester_x.dart';
 
 // E2E system test — zero mocking.
 // Requires a real device/simulator and backend running at localhost:8080.
@@ -33,12 +34,9 @@ void main() {
       // Verify portfolio screen is active
       expect(find.text('MI CARTERA'), findsOneWidget);
 
-      // Record the number of deletable transactions before deletion
-      final deletesBefore = tester
-          .widgetList(find.byIcon(Icons.delete_outline))
-          .length;
+      // Verify the test user has at least one transaction to delete
       expect(
-        deletesBefore,
+        tester.widgetList(find.byIcon(Icons.delete_outline)).length,
         greaterThan(0),
         reason: 'Test user must have at least one transaction to delete',
       );
@@ -52,17 +50,13 @@ void main() {
 
       // Confirm the deletion
       await tester.tap(find.text('BORRAR'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pumpUntilGone(find.byType(AlertDialog));
 
-      // Wait for DELETE request to complete and list to refresh
-      await Future.delayed(const Duration(seconds: 2));
-      await tester.pumpAndSettle();
-
-      // Verify the transaction was removed from the UI
-      final deletesAfter = tester
-          .widgetList(find.byIcon(Icons.delete_outline))
-          .length;
-      expect(deletesAfter, lessThan(deletesBefore));
+      // SnackBar appears immediately after Navigator.pop() — assert before it auto-hides.
+      // Icon counting is unreliable: lazy lists only render visible rows, so the count
+      // stays constant when a new row scrolls in to replace the deleted one.
+      expect(find.textContaining('eliminada'), findsOneWidget);
 
       // Verify we are still on the portfolio screen (no crash, no navigation)
       expect(find.text('MI CARTERA'), findsOneWidget);
