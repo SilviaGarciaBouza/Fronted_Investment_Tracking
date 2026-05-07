@@ -32,6 +32,8 @@ class AppStrings {
       'delete_title': '¿Eliminar ',
       'cancel': 'CANCELAR',
       'delete': 'BORRAR',
+      'investment': 'INVERSIÓN',
+      'date': 'FECHA',
 
       'tab_all': 'TODO',
       'tab_stocks': 'ACCIONES',
@@ -92,6 +94,8 @@ class AppStrings {
       'delete_title': 'Eliminar ',
       'cancel': 'CANCELAR',
       'delete': 'BORRAR',
+      'investment': 'INVERSIÓN',
+      'date': 'DATA',
 
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
@@ -149,6 +153,8 @@ class AppStrings {
       'delete_title': 'Delete ',
       'cancel': 'CANCEL',
       'delete': 'DELETE',
+      'investment': 'INVESTMENT',
+      'date': 'DATE',
 
       'transaction_success': 'Transaction completed successfully',
       'transaction_error': 'Error completing transaction',

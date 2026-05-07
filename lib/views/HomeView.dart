@@ -286,7 +286,10 @@ class _HomeviewState extends State<Homeview> {
           ),
           Expanded(
             flex: 2,
-            child: Text("FECHA", style: _headerStyle(color)),
+            child: Text(
+              AppStrings.get('date', lang),
+              style: _headerStyle(color),
+            ),
           ), // Etiqueta nueva
           Expanded(
             flex: 2,
@@ -297,8 +300,11 @@ class _HomeviewState extends State<Homeview> {
           ),
           Expanded(
             flex: 2,
-            child: Text("INVER.", style: _headerStyle(color)),
-          ), // Inversión de esa TX
+            child: Text(
+              AppStrings.get('investment', lang),
+              style: _headerStyle(color),
+            ),
+          ),
         ],
       ),
     );
