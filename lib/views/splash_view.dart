@@ -18,7 +18,9 @@ class SplashView extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (snapshot.data == true) {
+        if (snapshot.hasError) {
+          return const LoginView();
+        } else if (snapshot.data == true) {
           return const Homeview();
         } else {
           return const LoginView();
