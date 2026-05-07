@@ -197,35 +197,18 @@ class _HomeviewState extends State<Homeview> {
             );
             if (context.mounted) vm.fetchItems();
 
-            if (result == true && context.mounted) {
+            if (result.runtimeType == String && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Center(
                     child: Text(
-                      AppStrings.get('transaction_success', vm.currentLocale),
+                      result! as String,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   backgroundColor: Colors.green.shade700,
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            } else if (result == false && context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Center(
-                    child: Text(
-                      AppStrings.get('transaction_error', vm.currentLocale),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  backgroundColor: Colors.red.shade700,
-                  behavior: SnackBarBehavior.floating,
-
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

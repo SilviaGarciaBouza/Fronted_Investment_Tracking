@@ -6,6 +6,7 @@ import 'package:investment_tracking/models/transaction.dart';
 import 'package:investment_tracking/repositories/TransactionRepository.dart';
 import 'package:investment_tracking/repositories/session_repository.dart';
 import 'package:investment_tracking/service/SettingsService.dart';
+import 'package:investment_tracking/utils/app_strings.dart';
 import '../models/item.dart';
 import '../models/user.dart';
 import '../models/category.dart';
@@ -209,8 +210,9 @@ class InvViewModel extends ChangeNotifier {
     required double price,
     required int categoryId,
   }) async {
-    if (currentUser == null) return "Error: Sin sesión";
-
+    if (currentUser == null) {
+      return AppStrings.get('transaction_error', currentLocale);
+    }
     isLoading = true;
     notifyListeners();
 
@@ -224,12 +226,10 @@ class InvViewModel extends ChangeNotifier {
         currentUser!.token,
       );
       await fetchItems();
-
-      return isOnline
-          ? "Inversión guardada "
-          : "Guardado localmente (Sin conexión) ";
+      return AppStrings.get('transaction_success', currentLocale);
     } catch (e) {
-      return "Error al guardar: $e";
+      debugPrint("Error saving item: $e");
+      return AppStrings.get('transaction_error', currentLocale);
     } finally {
       isLoading = false;
       notifyListeners();

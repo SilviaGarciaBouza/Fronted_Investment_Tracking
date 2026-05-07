@@ -218,13 +218,13 @@ class _AdditemState extends State<Additem> {
                     ),
                     onPressed: isValid
                         ? () async {
-                            await vm.saveNewItem(
+                            final result = await vm.saveNewItem(
                               name: _selectedAssetName!,
                               stocks: double.parse(_qtyController.text),
                               price: double.parse(_priceController.text),
                               categoryId: _selectedCatId!,
                             );
-                            if (mounted) Navigator.pop(context, true);
+                            if (mounted) Navigator.pop(context, result);
                           }
                         : null,
                     child: Text(
