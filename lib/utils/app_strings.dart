@@ -98,7 +98,7 @@ class AppStrings {
       'transaction_deleted': 'Operación borrada',
 
       'tab_all': 'TODO',
-      'tab_stocks': 'ACCIÓN S',
+      'tab_stocks': 'ACCIÓNS',
       'tab_cryptos': 'CRIPTOS',
       'tab_currencies': 'DIVISAS',
 
