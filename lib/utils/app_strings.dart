@@ -14,6 +14,7 @@ class AppStrings {
       'req_conn': '(Requiere conexión)',
       'fields_req': 'Todos los campos son obligatorios',
       'reg_success': '¡Usuario registrado!',
+      'reg_error': "Error al registrar el usuario",
 
       /// Home y Portfolio
       'portfolio': 'MI CARTERA',
@@ -75,6 +76,7 @@ class AppStrings {
       'req_conn': '(Precisa conexión)',
       'fields_req': 'Todos os campos son obrigatorios',
       'reg_success': 'Usuario rexistrado!',
+      'reg_error': "Error rexistrando o usuario",
       'portfolio': 'A MIÑA CARTEIRA',
       'active': 'ACTIVO',
       'qty': 'CANT.',
@@ -131,6 +133,7 @@ class AppStrings {
       'req_conn': '(Connection required)',
       'fields_req': 'All fields are required',
       'reg_success': 'User registered!',
+      'reg_error': "Error registering user",
       'portfolio': 'MY PORTFOLIO',
       'active': 'ASSET',
       'qty': 'QTY.',

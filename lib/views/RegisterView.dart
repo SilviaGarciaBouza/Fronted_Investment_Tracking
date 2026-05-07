@@ -182,6 +182,22 @@ class _RegisterViewState extends State<RegisterView> {
       );
 
       Navigator.pop(context);
+    } else if (mounted && !success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('reg_error', vm.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     }
   }
 }
