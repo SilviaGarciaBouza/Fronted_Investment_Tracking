@@ -98,7 +98,12 @@ class InvViewModel extends ChangeNotifier {
   }
 
   /// ELIMINAR: Si falla el servidor, marca con is_deleted = 1
-  Future<void> deleteTransaction(int localId, int? serverId, int itemId) async {
+  Future<void> deleteTransaction(
+    int? localId,
+    int? serverId,
+    int itemId,
+  ) async {
+    if (localId == null) return;
     if (currentUser == null) return;
     isLoading = true;
     notifyListeners();

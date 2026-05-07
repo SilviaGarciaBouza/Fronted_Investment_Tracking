@@ -437,7 +437,7 @@ class _HomeviewState extends State<Homeview> {
           ),
           TextButton(
             onPressed: () async {
-              await vm.deleteTransaction(tx.id!, tx.serverId, itemId);
+              await vm.deleteTransaction(tx.id, tx.serverId, itemId);
 
               if (context.mounted) {
                 Navigator.pop(context);
