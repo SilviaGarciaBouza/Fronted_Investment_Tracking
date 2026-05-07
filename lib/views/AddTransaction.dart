@@ -112,7 +112,7 @@ class _AdditemState extends State<Additem> {
                 final catName = vm.categories
                     .firstWhereOrNull((c) => c.id == val)
                     ?.name;
-                if (catName != null) {
+                if (catName == null) {
                   return;
                 }
                 setState(() {
