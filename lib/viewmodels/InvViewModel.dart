@@ -363,6 +363,7 @@ class InvViewModel extends ChangeNotifier {
   }
 
   Future<void> syncPendingData() async {
+    if (currentUser == null) return;
     await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
     await fetchItems();
     notifyListeners();
