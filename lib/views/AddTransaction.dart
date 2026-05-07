@@ -104,7 +104,10 @@ class _AdditemState extends State<Additem> {
                   .map(
                     (c) => DropdownMenuItem(
                       value: c.id,
-                      child: Text(c.name, style: TextStyle(color: textColor)),
+                      child: Text(
+                        AppStrings.get(c.name, lang),
+                        style: TextStyle(color: textColor),
+                      ),
                     ),
                   )
                   .toList(),
@@ -131,7 +134,6 @@ class _AdditemState extends State<Additem> {
               dropdownColor: fieldColor,
               initialValue: _selectedAssetName,
               disabledHint: Text(
-                // //AA Hint deshabilitado traducido
                 AppStrings.get('asset_wait', lang),
                 style: const TextStyle(color: Colors.grey),
               ),

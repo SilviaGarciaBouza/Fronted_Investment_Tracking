@@ -14,7 +14,10 @@ class AppStrings {
       'req_conn': '(Requiere conexión)',
       'fields_req': 'Todos los campos son obligatorios',
       'reg_success': '¡Usuario registrado!',
-      'reg_error': "Error al registrar el usuario",
+      'reg_error': 'Error al registrar el usuario',
+      'Acción': 'Acción',
+      'Criptomoneda': 'Criptomoneda',
+      'Divisa': 'Divisa',
 
       /// Home y Portfolio
       'portfolio': 'MI CARTERA',
@@ -96,6 +99,9 @@ class AppStrings {
       'delete': 'BORRAR',
       'investment': 'INVERSIÓN',
       'date': 'DATA',
+      'Acción': 'Acción',
+      'Criptomoneda': 'Criptomoneda',
+      'Divisa': 'Divisa',
 
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
@@ -155,15 +161,18 @@ class AppStrings {
       'delete': 'DELETE',
       'investment': 'INVESTMENT',
       'date': 'DATE',
+      'Acción': 'Share',
+      'Criptomoneda': 'Crypto',
+      'Divisa': 'Currency',
 
       'transaction_success': 'Transaction completed successfully',
       'transaction_error': 'Error completing transaction',
       'transaction_deleted': 'Transaction deleted',
 
       'tab_all': 'ALL',
-      'tab_stocks': 'STOCKS',
+      'tab_stocks': 'SHARES',
       'tab_cryptos': 'CRYPTOS',
-      'tab_currencies': 'FOREX',
+      'tab_currencies': 'CURRENCIES',
 
       'new_inv': 'NEW INVESTMENT',
       'cat_label': '1. CATEGORY',
