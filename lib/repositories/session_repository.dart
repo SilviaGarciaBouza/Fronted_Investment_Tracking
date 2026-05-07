@@ -11,7 +11,7 @@ class SessionRepository {
   Future<int?> getUserId() async {
     final jsonString = await _storageService.read(_userKey);
     if (jsonString == null) return null;
-    return int.parse(jsonString);
+    return int.tryParse(jsonString);
   }
 
   Future<void> clearUserId() async {
