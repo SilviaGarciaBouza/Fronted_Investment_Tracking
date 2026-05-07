@@ -214,7 +214,7 @@ class _HomeviewState extends State<Homeview> {
                   ),
                 ),
               );
-            } else {
+            } else if (result == false && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Center(
