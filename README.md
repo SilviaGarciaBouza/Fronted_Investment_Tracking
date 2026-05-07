@@ -1,85 +1,198 @@
-# 🚀 My Investment Portfolio Tracker (Web-First)
+# Investment Tracking — App Flutter
 
-Una aplicación de gestión y seguimiento de inversiones multi-activo, desarrollada con **Flutter (Dart)**, que utiliza una única base de código para ofrecer una experiencia profesional y persistente tanto en la **Web** como en dispositivos móviles y de escritorio.
-
-## 🌟 Características Principales
-
-### 📈 Gestión Financiera Avanzada
-
-- **Coste Promedio Ponderado (WAC):** Implementación de lógica avanzada para calcular automáticamente el coste promedio (`Share Prize`) al realizar múltiples compras del mismo activo.
-- **Seguimiento en Tiempo Real:** Obtiene precios de mercado (Acciones, FX, Cripto) de la API de Alpha Vantage para calcular el **Valor Actual Total** y el **Pérdida/Ganancia (P&L)** de toda la cartera.
-- **Desglose de Transacciones:** La vista `TransactionDetailView` permite a los usuarios examinar cada compra individual y su impacto actual en el P&L, basada en el precio de mercado.
-- **Cálculo de Totales:** Muestra un resumen financiero completo de la cartera (Inversión Total, Valor Actual Total, P&L Absoluto y Porcentual).
-
-### 💾 Estabilidad y Multiplataforma
-
-- **Aplicación Multiplataforma (Web-First):** Una única base de código desplegable en **Web**, iOS, Android, Windows, macOS y Linux.
-- **Persistencia Adaptativa:** Utiliza **`shared_preferences`** para guardar la cartera. En la web, esta librería se adapta automáticamente para usar el **`localStorage` del navegador**, asegurando que los datos persistan en el cliente.
-- **Estado de Carga:** Muestra un indicador (`CircularProgressIndicator`) al cargar la aplicación y actualizar los precios de mercado.
-
-## 🛠️ Tecnologías y Arquitectura
-
-- **Framework:** Flutter 3.x (Dart)
-- **Arquitectura:** Model-View-ViewModel (MVVM) con **Provider** (`ChangeNotifier`) para gestionar el estado y la lógica de negocio (`Invviewmodel.dart`).
-- **Persistencia:** `shared_preferences` (Serialización/Deserialización de objetos Dart a JSON).
-- **API Externa:** Alpha Vantage (Cotizaciones).
+Aplicación móvil y de escritorio para el seguimiento de carteras de inversión. Permite registrar activos financieros, añadir transacciones de compra, consultar el P&L en tiempo real y funcionar sin conexión con sincronización automática al recuperar la red.
 
 ---
 
-## 🚀 Instalación y Ejecución
+## Índice
 
-### Requisitos
-
-- Tener instalado **Flutter SDK**.
-- Tener configurados los toolchains necesarios para la plataforma de destino (ej., Xcode para iOS/macOS, Visual Studio para Windows).
-- Clave API de Alpha Vantage.
-
-### Pasos Generales
-
-1.  **Clonar el repositorio:**
-
-    ```bash
-    git clone [https://docs.github.com/es/repositories/creating-and-managing-repositories/quickstart-for-repositories](https://docs.github.com/es/repositories/creating-and-managing-repositories/quickstart-for-repositories)
-    cd investment_tracking
-    ```
-
-2.  **Configurar la API Key:**
-
-    - Inserta tu clave de Alpha Vantage en el archivo `lib/service/StockService.dart`.
-
-3.  **Obtener dependencias:**
-    ```bash
-    flutter pub get
-    ```
-
-### Comandos de Ejecución por Plataforma
-
-Antes de ejecutar, asegúrate de que el soporte para la plataforma de escritorio esté habilitado: `flutter config --enable-windows-desktop`, `flutter config --enable-macos-desktop`, etc.
-
-| Plataforma                | Comando de Ejecución (Debug)   | Comandos de Build (Release)                                |
-| :------------------------ | :----------------------------- | :--------------------------------------------------------- |
-| **Web**                   | `bash flutter run -d chrome `  | `bash flutter build web ` _(Genera la carpeta /build/web)_ |
-| **Android**               | `bash flutter run -d android ` | `bash flutter build apk `                                  |
-| **iOS** (macOS necesario) | `bash flutter run -d ios `     | `bash flutter build ipa `                                  |
-| **Windows**               | `bash flutter run -d windows ` | `bash flutter build windows ` _(Requiere VS)_              |
-| **macOS**                 | `bash flutter run -d macos `   | `bash flutter build macos `                                |
-| **Linux**                 | `bash flutter run -d linux `   | `bash flutter build linux `                                |
+1. [Requisitos previos](#requisitos-previos)
+2. [Configuración del entorno](#configuración-del-entorno)
+3. [Configuración del backend](#configuración-del-backend)
+4. [Ejecutar la aplicación](#ejecutar-la-aplicación)
+5. [Ejecutar los tests](#ejecutar-los-tests)
+6. [Estructura del proyecto](#estructura-del-proyecto)
+7. [Aspectos técnicos destacados](#aspectos-técnicos-destacados)
 
 ---
 
-## ⚙️ Estructura del Código
+## Requisitos previos
 
-El corazón de la lógica de negocio, persistencia, WAC y llamadas a la API reside en el _ViewModel_:
+| Herramienta            | Versión mínima                |
+| ---------------------- | ----------------------------- |
+| Flutter SDK            | 3.x (Dart >= 3.9)             |
+| Android Studio / Xcode | Para emuladores móviles       |
+| Backend Spring Boot    | Corriendo en `localhost:8080` |
 
-| Archivo                                | Responsabilidad Principal                                                                       |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| `lib/viewmodels/Invviewmodel.dart`     | Inicialización, Carga/Guardado, WAC (Coste Promedio), Recálculo de P&L y Notificación de la UI. |
-| `lib/models/Item.dart`                 | Modelo de Posición Total. Contiene la lista de **Transacciones**.                               |
-| `lib/views/Homeview.dart`              | Vista principal de la tabla y navegación.                                                       |
-| `lib/views/TransactionDetailView.dart` | Desglose de P&L por compra individual.                                                          |
+Instalar Flutter siguiendo la [guía oficial](https://docs.flutter.dev/get-started/install).
+
+En Linux (Ubuntu/Debian), instalar las dependencias de escritorio antes de la primera ejecución:
+
+```bash
+sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev
+```
 
 ---
 
-### 👨‍💻 Autor
+## Configuración del entorno
 
-Silvia García Bouza
+```bash
+# Clonar el repositorio
+git clone git@github.com:SilviaGarciaBouza/Fronted_Investment_Tracking.git
+cd Fronted_Investment_Tracking
+
+# Instalar dependencias de Flutter
+flutter pub get
+```
+
+### URL del backend
+
+La URL base de la API está definida en `lib/service/api_service.dart`:
+
+```dart
+final String baseUrl = "http://localhost:8080/api";
+```
+
+Cambiar este valor si el backend corre en una dirección o puerto diferente. Para Android en emulador, usar `http://10.0.2.2:8080/api` en lugar de `localhost`.
+
+## Ejecutar la aplicación
+
+```bash
+# Web
+flutter run -d chrome
+
+# Android (emulador o dispositivo físico)
+flutter run -d android
+
+# iOS (requiere macOS y Xcode)
+flutter run -d ios
+
+# Linux (escritorio)
+flutter run -d linux
+```
+
+Para listar los dispositivos disponibles en el sistema:
+
+```bash
+flutter devices
+```
+
+### Builds de producción
+
+```bash
+flutter build web
+flutter build apk
+flutter build ipa
+```
+
+---
+
+## Ejecutar los tests
+
+La suite completa de tests no necesita dispositivo ni backend: todo el acceso a red va mockeado y SQLite corre en memoria mediante `sqflite_ffi`.
+
+```bash
+# Tests unitarios (un fichero por clase)
+flutter test unitTest/
+
+# Tests de integración (composición de capas)
+flutter test integrationTest/
+
+# Un único fichero
+flutter test unitTest/models/item_test.dart
+```
+
+Los tests E2E del sistema requieren un dispositivo conectado y el backend corriendo:
+
+```bash
+flutter test -d linux integration_test/system_integration_test.dart
+```
+
+---
+
+## Estructura del proyecto
+
+```
+lib/
+├── main.dart                    # Punto de entrada, rutas y provider raíz
+├── models/                      # Entidades de dominio
+│   ├── item.dart                # Activo financiero con sus transacciones
+│   ├── transaction.dart         # Movimiento de compra individual
+│   ├── user.dart                # Usuario autenticado con token JWT
+│   └── category.dart            # Clasificación de activos
+├── viewmodels/
+│   └── InvViewModel.dart        # ViewModel único (ChangeNotifier) con todo el estado
+├── repositories/                # Acceso a datos: API primero, SQLite como fallback
+│   ├── item_repository.dart
+│   ├── TransactionRepository.dart
+│   ├── auth_repository.dart
+│   ├── category_repository.dart
+│   └── session_repository.dart
+├── dao/                         # CRUD directo sobre SQLite, un DAO por tabla
+│   ├── item_dao.dart
+│   ├── transaction_dao.dart
+│   ├── user_dao.dart
+│   └── category_dao.dart
+├── database/
+│   └── database_helper.dart     # Singleton SQLite, schema v20
+├── service/
+│   ├── api_service.dart         # Cliente HTTP con timeout de 15 s y cabeceras JWT
+│   ├── storage_service.dart     # SharedPreferences
+│   └── SettingsService.dart     # Persistencia de tema e idioma
+├── views/                       # Pantallas de la aplicación
+│   ├── LoginView.dart
+│   ├── RegisterView.dart
+│   ├── HomeView.dart
+│   ├── AddTransaction.dart
+│   ├── TransactionDetailView.dart
+│   ├── total_view.dart
+│   └── splash_view.dart
+├── utils/
+│   └── app_strings.dart         # Internacionalización (es / gl / en)
+└── widgets/                     # Componentes reutilizables
+```
+
+---
+
+## Aspectos técnicos destacados
+
+### Arquitectura MVVM + Repository + DAO
+
+El proyecto aplica una separación de responsabilidades en tres capas:
+
+- **Views** consumen el `InvViewModel` mediante `Consumer<InvViewModel>` y no conocen la fuente de datos.
+- **Repositories** intentan el servidor primero y caen a SQLite si falla, marcando los registros pendientes con `isSynced = 0`.
+- **DAOs** ejecutan SQL puro sobre sqflite, sin lógica de negocio.
+
+Esta separación hace que cambiar la fuente de datos (por ejemplo, sustituir SQLite por otro motor) solo afecte a los DAOs, sin tocar el ViewModel ni las vistas.
+
+### Modo offline-first con sincronización automática
+
+Todas las escrituras tocan SQLite primero. Los registros no sincronizados se marcan con `isSynced = 0` o `isDeleted = 1` y se suben al servidor en cuanto se recupera la conexión. El `InvViewModel` ejecuta `syncPendingData()` automáticamente al reconectarse, garantizando que ninguna operación offline se pierda.
+
+### Detección de conectividad en dos niveles
+
+La app combina `connectivity_plus` (eventos de red del sistema operativo) con una verificación activa contra el servidor cada 10 segundos. Esto evita el problema habitual de confundir "hay WiFi" con "el backend está accesible": es posible tener red pero que el servidor esté caído, y la app lo detecta correctamente.
+
+### P&L calculado como getters derivados
+
+Las métricas financieras (`totalCurrentValue`, `totalInvestment`, `totalPnL`, `totalPnLPercent`) son getters calculados en tiempo real a partir del estado, sin persistirlos. Cualquier cambio en precios o transacciones se refleja de inmediato en toda la UI gracias al sistema reactivo de `ChangeNotifier`.
+
+### Internacionalización sin paquetes externos
+
+El sistema de traducción es un mapa estático en `lib/utils/app_strings.dart` que soporta español, gallego e inglés. El idioma se detecta automáticamente del sistema operativo y puede cambiarse desde la app, persistiéndose en SharedPreferences.
+
+### Suite de tests estructurada en tres niveles
+
+| Nivel                 | SQLite                 | HTTP           | Qué verifica                                         |
+| --------------------- | ---------------------- | -------------- | ---------------------------------------------------- |
+| Unitario              | Mockeado / real ffi    | Mockeado       | Cada clase de forma aislada                          |
+| Integración bottom-up | Real (sqflite_ffi)     | Mockeado       | DAO -> Repository -> ViewModel con asserts en SQLite |
+| Integración top-down  | Real (infraestructura) | Mockeado       | Flujos completos desde el ViewModel hacia abajo      |
+| E2E sistema           | Real                   | Real (backend) | Stack completo desde la UI hasta el servidor         |
+
+Los tests de integración usan una base de datos SQLite separada para evitar colisiones con la base de datos de la app. La concurrencia está configurada con `concurrency: 1` en `dart_test.yaml` para evitar errores `SQLITE_BUSY`.
+
+### Soporte multiplataforma con un único código base
+
+La misma app corre en Android, iOS, y escritorio. La diferencia principal está en la inicialización de SQLite: en escritorio se usa `sqflite_common_ffi` y en móvil/web el `sqflite` estándar, con la detección de plataforma encapsulada en `database_helper.dart`.
