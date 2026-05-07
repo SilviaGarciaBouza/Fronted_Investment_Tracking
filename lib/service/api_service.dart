@@ -18,6 +18,7 @@ class ApiService {
       return "http://localhost:8080/api";
     }
   }*/
+  static const _timeout = Duration(seconds: 30);
 
   /// Genera las cabeceras estándar, incluyendo el Token Bearer si existe.
   Map<String, String> _getHeaders(String? token) => {
@@ -28,10 +29,9 @@ class ApiService {
 
   /// Realiza una petición GET. Lanza una excepción si el servidor falla.
   Future<dynamic> get(String endpoint, {String? token}) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: _getHeaders(token),
-    );
+    final response = await http
+        .get(Uri.parse('$baseUrl$endpoint'), headers: _getHeaders(token))
+        .timeout(_timeout);
     if (response.statusCode == 200) return json.decode(response.body);
     throw Exception('Error en GET $endpoint: ${response.statusCode}');
   }
@@ -42,11 +42,14 @@ class ApiService {
     Map<String, dynamic> data, {
     String? token,
   }) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: _getHeaders(token),
-      body: json.encode(data),
-    );
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl$endpoint'),
+          headers: _getHeaders(token),
+          body: json.encode(data),
+        )
+        .timeout(_timeout);
+    ;
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body);
     } else if (response.statusCode == 401) {
@@ -57,10 +60,9 @@ class ApiService {
 
   /// Realiza una petición DELETE y retorna true si fue exitosa.
   Future<bool> delete(String endpoint, {String? token}) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: _getHeaders(token),
-    );
+    final response = await http
+        .delete(Uri.parse('$baseUrl$endpoint'), headers: _getHeaders(token))
+        .timeout(_timeout);
     return response.statusCode == 200 || response.statusCode == 204;
   }
 }
