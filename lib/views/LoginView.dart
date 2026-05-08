@@ -154,7 +154,6 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const Spacer(flex: 1),
 
-                      // --- BOTÓN ACCEDER ---
                       vm.isLoading
                           ? CircularProgressIndicator(color: primary)
                           : ElevatedButton(

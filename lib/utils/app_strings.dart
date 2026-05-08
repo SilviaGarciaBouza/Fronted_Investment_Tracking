@@ -5,7 +5,7 @@ class AppStrings {
       'login_title': 'GESTOR DE INVERSIONES',
       'login_error': 'Error al loguearse',
       'reg_title': 'NUEVA CUENTA',
-      'user': 'Usuario',
+      'user': 'Email',
       'pass': 'Contraseña',
       'email': 'Email',
       'btn_access': 'ACCEDER',
@@ -18,6 +18,7 @@ class AppStrings {
       'Acción': 'Acción',
       'Criptomoneda': 'Criptomoneda',
       'Divisa': 'Divisa',
+      'name': 'Nombre',
 
       /// Home y Portfolio
       'portfolio': 'MI CARTERA',
@@ -72,7 +73,7 @@ class AppStrings {
       'login_title': 'XESTOR DE INVERSIÓNS',
       'login_error': 'Error logueando',
       'reg_title': 'NOVA CONTA',
-      'user': 'Usuario',
+      'user': 'Email',
       'pass': 'Contrasinal',
       'email': 'Email',
       'btn_access': 'ACCEDER',
@@ -102,6 +103,7 @@ class AppStrings {
       'Acción': 'Acción',
       'Criptomoneda': 'Criptomoneda',
       'Divisa': 'Divisa',
+      'name': 'Nome',
 
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
@@ -134,7 +136,7 @@ class AppStrings {
       'login_title': 'INVESTMENT MANAGER',
       'login_error': 'Error logging in',
       'reg_title': 'NEW ACCOUNT',
-      'user': 'Username',
+      'user': 'Email',
       'pass': 'Password',
       'email': 'Email',
       'btn_access': 'LOGIN',
@@ -164,6 +166,7 @@ class AppStrings {
       'Acción': 'Share',
       'Criptomoneda': 'Crypto',
       'Divisa': 'Currency',
+      'name': 'Name',
 
       'transaction_success': 'Transaction completed successfully',
       'transaction_error': 'Error completing transaction',

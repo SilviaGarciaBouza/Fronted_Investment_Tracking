@@ -49,7 +49,6 @@ class ApiService {
           body: json.encode(data),
         )
         .timeout(_timeout);
-    ;
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body);
     } else if (response.statusCode == 401) {

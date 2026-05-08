@@ -49,7 +49,7 @@ class _RegisterViewState extends State<RegisterView> {
             // Campo Usuario: Salta al siguiente
             _buildField(
               _userController,
-              AppStrings.get('user', lang),
+              AppStrings.get('name', lang),
               Icons.person_outline,
               primary,
               vm.isDarkMode,
