@@ -19,6 +19,8 @@ class AppStrings {
       'Criptomoneda': 'Criptomoneda',
       'Divisa': 'Divisa',
       'name': 'Nombre',
+      'benefit': 'Beneficio',
+      'benefit_perc': 'Beneficio %',
 
       /// Home y Portfolio
       'portfolio': 'MI CARTERA',
@@ -104,6 +106,8 @@ class AppStrings {
       'Criptomoneda': 'Criptomoneda',
       'Divisa': 'Divisa',
       'name': 'Nome',
+      'benefit': 'Beneficio',
+      'benefit_perc': 'Beneficio %',
 
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
@@ -194,6 +198,8 @@ class AppStrings {
       'perc_pnl': 'Percentage Yield',
       'avg': 'Average',
       'current': 'Current',
+      'benefit': 'Benefit',
+      'benefit_perc': 'Benefit %',
     },
   };
 

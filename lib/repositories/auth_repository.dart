@@ -11,10 +11,10 @@ class AuthRepository {
   final UserDao _userDao = UserDao();
 
   /// Realiza el login, guarda el usuario en SQLite y devuelve el objeto [User].
-  Future<User?> login(String username, String password) async {
+  Future<User?> login(String email, String password) async {
     try {
       final response = await _apiService.post('/users/login', {
-        "username": username,
+        "email": email,
         "password": password,
       });
 

@@ -7,6 +7,8 @@ import 'package:investment_tracking/repositories/TransactionRepository.dart';
 import 'package:investment_tracking/repositories/session_repository.dart';
 import 'package:investment_tracking/service/SettingsService.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import '../models/item.dart';
 import '../models/user.dart';
 import '../models/category.dart';
@@ -365,6 +367,59 @@ class InvViewModel extends ChangeNotifier {
         _checkRealConnection();
       }
     });
+  }
+
+  Future<pw.Document> generateGeneralReport() async {
+    final pdf = pw.Document();
+    final lang = _currentLocale;
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Text(
+                  "InvestTrackin - ${AppStrings.get('total_res', lang)}",
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text(
+                "${AppStrings.get('total_val', lang)}: ${totalCurrentValue.toStringAsFixed(2)}",
+              ),
+              pw.Text(
+                "${AppStrings.get('init_inv', lang)}: ${totalInvestment.toStringAsFixed(2)}q",
+              ),
+              pw.Divider(),
+              pw.Text(
+                '${AppStrings.get('benefit', lang)}: ${totalPnL.toStringAsFixed(2)}',
+              ),
+              pw.Text(
+                '${AppStrings.get('benefit_percent', lang)}:: ${totalPnLPercent.toStringAsFixed(2)}',
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                context: context,
+                data: <List<String>>[
+                  <String>['Activo', 'Inversión', 'Valor Actual'],
+                  ...itemList.map(
+                    (item) => [
+                      item.name,
+                      (item.totalInvEur.toStringAsFixed(2)),
+                      (item.currentValue.toStringAsFixed(2)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf;
   }
 
   Future<void> syncPendingData() async {

@@ -20,6 +20,8 @@ dependencies:
   sqflite_common_ffi: ^2.3.3
   connectivity_plus: ^7.1.1
   collection: ^1.18.0
+  pdf: ^3.10.0
+  printing: ^5.11.0
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
 import '../utils/app_strings.dart';
@@ -18,15 +20,28 @@ class TotalView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: bg,
+
       appBar: AppBar(
         backgroundColor: bg,
         foregroundColor: primary,
         elevation: 0,
-        title: Text(
-          AppStrings.get('total_res', lang),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(AppStrings.get('total_res', lang)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print_outlined),
+            onPressed: () async {
+              final pdfDoc = await vm.generateGeneralReport();
+
+              await Printing.layoutPdf(
+                onLayout: (PdfPageFormat format) async => pdfDoc.save(),
+                name:
+                    'informe_investtrackin_${DateTime.now().millisecondsSinceEpoch}.pdf',
+              );
+            },
+          ),
+        ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
