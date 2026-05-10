@@ -383,7 +383,7 @@ class InvViewModel extends ChangeNotifier {
               pw.Header(
                 level: 0,
                 child: pw.Text(
-                  "InvestTrackin - ${AppStrings.get('total_res', lang)}",
+                  "InvestTracking - ${AppStrings.get('total_res', lang)}",
                 ),
               ),
               pw.SizedBox(height: 20),
@@ -391,25 +391,27 @@ class InvViewModel extends ChangeNotifier {
                 "${AppStrings.get('total_val', lang)}: ${totalCurrentValue.toStringAsFixed(2)}",
               ),
               pw.Text(
-                "${AppStrings.get('init_inv', lang)}: ${totalInvestment.toStringAsFixed(2)}q",
+                "${AppStrings.get('init_inv', lang)}: ${totalInvestment.toStringAsFixed(2)}",
               ),
               pw.Divider(),
+              // Usamos las claves que ya tienes en la UI para ser consistentes
               pw.Text(
-                '${AppStrings.get('benefit', lang)}: ${totalPnL.toStringAsFixed(2)}',
+                "${AppStrings.get('abs_pnl', lang)}: ${totalPnL.toStringAsFixed(2)}",
               ),
               pw.Text(
-                '${AppStrings.get('benefit_percent', lang)}:: ${totalPnLPercent.toStringAsFixed(2)}',
+                "${AppStrings.get('perc_pnl', lang)}: ${totalPnLPercent.toStringAsFixed(2)}%",
               ),
               pw.SizedBox(height: 20),
               pw.Table.fromTextArray(
                 context: context,
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 data: <List<String>>[
                   <String>['Activo', 'Inversión', 'Valor Actual'],
                   ...itemList.map(
                     (item) => [
                       item.name,
-                      (item.totalInvEur.toStringAsFixed(2)),
-                      (item.currentValue.toStringAsFixed(2)),
+                      "${item.totalInvEur.toStringAsFixed(2)}",
+                      "${item.currentValue.toStringAsFixed(2)}",
                     ],
                   ),
                 ],

@@ -25,10 +25,16 @@ class TotalView extends StatelessWidget {
         backgroundColor: bg,
         foregroundColor: primary,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: AppStrings.get('back_tooltip', lang),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text(AppStrings.get('total_res', lang)),
         actions: [
           IconButton(
             icon: const Icon(Icons.print_outlined),
+            tooltip: AppStrings.get('tooltip_print', lang),
             onPressed: () async {
               final pdfDoc = await vm.generateGeneralReport();
 
@@ -37,6 +43,17 @@ class TotalView extends StatelessWidget {
                 name:
                     'informe_investtrackin_${DateTime.now().millisecondsSinceEpoch}.pdf',
               );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Center(
+                      child: Text(AppStrings.get('pdf_generated', lang)),
+                    ),
+                    backgroundColor: primary,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
           ),
         ],

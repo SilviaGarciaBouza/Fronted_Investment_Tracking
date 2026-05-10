@@ -57,7 +57,24 @@ class _HomeviewState extends State<Homeview> {
                     color: vm.isOnline ? primaryColor : Colors.redAccent,
                   ),
                 ),
-                onPressed: () => {vm.syncPendingData()},
+                tooltip: vm.isOnline
+                    ? AppStrings.get('tooltip_sync', lang)
+                    : AppStrings.get('tooltip_no_sync', lang),
+                onPressed: () {
+                  if (vm.isOnline) {
+                    vm.syncPendingData();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Center(
+                          child: Text(AppStrings.get('no_connection', lang)),
+                        ),
+                        backgroundColor: Colors.red.shade700,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
               );
             },
           ),
@@ -75,10 +92,12 @@ class _HomeviewState extends State<Homeview> {
                 vm.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                 color: primaryColor,
               ),
+              tooltip: AppStrings.get('tooltip_theme', lang),
               onPressed: () => vm.toggleTheme(),
             ),
             PopupMenuButton<String>(
               icon: Icon(Icons.language, color: primaryColor),
+              tooltip: AppStrings.get('tooltip_lang', lang),
               onSelected: (code) => vm.setLanguage(code),
               itemBuilder: (context) => [
                 const PopupMenuItem(value: 'es', child: Text("Español")),
@@ -88,11 +107,13 @@ class _HomeviewState extends State<Homeview> {
             ),
             IconButton(
               icon: Icon(Icons.leaderboard_outlined, color: primaryColor),
+              tooltip: AppStrings.get('tooltip_stats', lang),
               onPressed: () =>
                   Navigator.pushNamed(context, TotalView.routeName),
             ),
             IconButton(
               icon: const Icon(Icons.logout, color: Colors.redAccent),
+              tooltip: AppStrings.get('tooltip_logout', lang),
               onPressed: () async {
                 await vm.logout();
                 if (context.mounted) {
@@ -190,6 +211,7 @@ class _HomeviewState extends State<Homeview> {
         ),
         floatingActionButton: FloatingActionButton(
           backgroundColor: primaryColor,
+          tooltip: AppStrings.get('tooltip_add', lang),
           onPressed: () async {
             final result = await Navigator.pushNamed(
               context,

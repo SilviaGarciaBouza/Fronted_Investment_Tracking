@@ -18,6 +18,11 @@ class TransactionDetailView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(item.name),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: AppStrings.get('back_tooltip', lang),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: primary,
       ),

@@ -73,6 +73,11 @@ class _AdditemState extends State<Additem> {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: AppStrings.get('back_tooltip', lang),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         iconTheme: IconThemeData(color: primaryColor),
         title: Text(
           AppStrings.get('new_inv', lang),
