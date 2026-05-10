@@ -49,6 +49,7 @@ class AppStrings {
       'tooltip_stats': 'Ver totales',
       'tooltip_logout': 'Cerrar sesión',
       'tooltip_add': 'Nueva inversión',
+      'session_expired': 'Sesión expirada. Inicia sesión de nuevo',
 
       'tab_all': 'TODO',
       'tab_stocks': 'ACCIONES',
@@ -127,6 +128,7 @@ class AppStrings {
       'tooltip_sync': 'Sincronizar datos agora',
       'tooltip_no_sync': 'Agardando por conexión para sincronizar...',
       'no_connection': 'Sen conexión co servidor MariaDB',
+      'session_expired': 'Sesion expirada. Inicia sesion de novo',
 
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
@@ -201,6 +203,7 @@ class AppStrings {
       'tooltip_sync': 'Sync data now',
       'tooltip_no_sync': 'Waiting for connection to sync...',
       'no_connection': 'No connection to MariaDB server',
+      'session_expired': 'Session expired. Login again',
 
       'transaction_success': 'Transaction completed successfully',
       'transaction_error': 'Error completing transaction',

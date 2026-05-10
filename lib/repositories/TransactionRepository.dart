@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:investment_tracking/UnauthorizedException.dart';
 import '../dao/transaction_dao.dart';
 import '../models/transaction.dart';
 import '../service/api_service.dart';
@@ -31,6 +32,7 @@ class TransactionRepository {
       }
       return false;
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       debugPrint("Offline: Marcando para borrar en el servidor más tarde.");
       // Fallo/Offline: Marcamos para borrado lógico (is_deleted = 1)
       await _transactionDao.markForDeletion(localId);
@@ -82,6 +84,7 @@ class TransactionRepository {
         );
       }
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       debugPrint("Modo Offline: Guardado localmente");
     }
   }

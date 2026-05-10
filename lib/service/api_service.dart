@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:investment_tracking/UnauthorizedException.dart';
 
 /// Servicio central de comunicaciones HTTP.
 ///
@@ -33,6 +34,7 @@ class ApiService {
         .get(Uri.parse('$baseUrl$endpoint'), headers: _getHeaders(token))
         .timeout(_timeout);
     if (response.statusCode == 200) return json.decode(response.body);
+    if (response.statusCode == 401) throw UnauthorizedException();
     throw Exception('Error en GET $endpoint: ${response.statusCode}');
   }
 
@@ -62,6 +64,7 @@ class ApiService {
     final response = await http
         .delete(Uri.parse('$baseUrl$endpoint'), headers: _getHeaders(token))
         .timeout(_timeout);
+    if (response.statusCode == 200) return json.decode(response.body);
     return response.statusCode == 200 || response.statusCode == 204;
   }
 }

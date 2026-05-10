@@ -18,6 +18,35 @@ class _LoginViewState extends State<LoginView> {
   bool _obscureText = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      if (args?['sessionExpired'] == true && mounted) {
+        final lang = Provider.of<InvViewModel>(
+          context,
+          listen: false,
+        ).currentLocale;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text(
+                AppStrings.get('session_expired', lang),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            backgroundColor: Colors.orange.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _userController.dispose();
     _passController.dispose();

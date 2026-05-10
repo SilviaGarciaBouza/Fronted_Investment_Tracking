@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:investment_tracking/UnauthorizedException.dart';
 import 'package:investment_tracking/dao/caegory_dao.dart';
 import 'package:investment_tracking/dao/transaction_dao.dart';
 import 'package:investment_tracking/models/transaction.dart';
@@ -26,6 +27,7 @@ class ItemRepository {
       await _itemDao.saveItems(remoteItems, userId);
       return await _itemDao.getItems(userId);
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       debugPrint("Modo Offline: No se pudo refrescar desde el servidor.");
       return await getLocalItems(userId);
     }
@@ -56,6 +58,7 @@ class ItemRepository {
         await _itemDao.saveItems([serverItem], userId);
       }
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       await _itemDao.saveItemOffline(item, stocks, price, userId);
     }
   }
@@ -77,6 +80,7 @@ class ItemRepository {
       }
       return false;
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       await _itemDao.markForDeletion(localId);
       return false;
     }
@@ -127,6 +131,7 @@ class ItemRepository {
         return true;
       }
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       await _transactionDao.markForDeletion(localId);
       numTransactionItems = await _transactionDao.getTransactionItemsCount(
         itemId,

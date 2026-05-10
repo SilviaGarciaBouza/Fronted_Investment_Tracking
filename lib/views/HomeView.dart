@@ -18,12 +18,32 @@ class Homeview extends StatefulWidget {
 }
 
 class _HomeviewState extends State<Homeview> {
+  InvViewModel? _vm;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<InvViewModel>(context, listen: false).fetchItems();
+      _vm = Provider.of<InvViewModel>(context, listen: false);
+      _vm!.fetchItems();
+      _vm!.addListener(_onVmChange);
     });
+  }
+
+  @override
+  void dispose() {
+    _vm?.removeListener(_onVmChange);
+    super.dispose();
+  }
+
+  void _onVmChange() {
+    if (_vm?.sessionExpired == true && mounted) {
+      _vm!.clearSessionExpired();
+      Navigator.pushReplacementNamed(
+        context,
+        LoginView.routeName,
+        arguments: {'sessionExpired': true},
+      );
+    }
   }
 
   @override

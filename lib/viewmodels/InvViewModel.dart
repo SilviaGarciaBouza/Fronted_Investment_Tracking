@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:investment_tracking/UnauthorizedException.dart';
 import 'package:investment_tracking/models/transaction.dart';
 import 'package:investment_tracking/repositories/TransactionRepository.dart';
 import 'package:investment_tracking/repositories/session_repository.dart';
@@ -38,6 +39,23 @@ class InvViewModel extends ChangeNotifier {
   List<Category> categories = [];
   bool isLoading = false;
   bool isOnline = true;
+  bool sessionExpired = false;
+
+  void clearSessionExpired() {
+    sessionExpired = false;
+  }
+
+  Future<T?> _guarded<T>(Future<T> Function() fn) async {
+    try {
+      return await fn();
+    } on UnauthorizedException {
+      await logout();
+      sessionExpired = true;
+      notifyListeners();
+      return null;
+    }
+  }
+
   InvViewModel() {
     _initConnectivityListener();
     _startHeartbeat();
@@ -111,17 +129,17 @@ class InvViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      final success = await _transactionRepo.deleteTransaction(
-        localId,
-        serverId,
-        currentUser!.token,
-      );
-
-      await fetchItems();
-
-      debugPrint(
-        success ? "Eliminado con éxito" : "Marcado para borrar offline",
-      );
+      await _guarded(() async {
+        final success = await _transactionRepo.deleteTransaction(
+          localId,
+          serverId,
+          currentUser!.token,
+        );
+        await fetchItems();
+        debugPrint(
+          success ? "Eliminado con éxito" : "Marcado para borrar offline",
+        );
+      });
     } catch (e) {
       debugPrint("Error al borrar transacción: $e");
     } finally {
@@ -190,11 +208,13 @@ class InvViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     try {
-      categories = await _categoryRepo.getAllCategories(currentUser!.token);
-      itemList = await _itemRepo.fetchUserItems(
-        currentUser!.id,
-        currentUser!.token,
-      );
+      await _guarded(() async {
+        categories = await _categoryRepo.getAllCategories(currentUser!.token);
+        itemList = await _itemRepo.fetchUserItems(
+          currentUser!.id,
+          currentUser!.token,
+        );
+      });
     } catch (e) {
       debugPrint("Error en fetchItems: $e");
     } finally {
@@ -219,16 +239,19 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _itemRepo.saveTransaction(
-        name,
-        stocks,
-        price,
-        categoryId,
-        currentUser!.id,
-        currentUser!.token,
-      );
-      await fetchItems();
-      return AppStrings.get('transaction_success', currentLocale);
+      final result = await _guarded(() async {
+        await _itemRepo.saveTransaction(
+          name,
+          stocks,
+          price,
+          categoryId,
+          currentUser!.id,
+          currentUser!.token,
+        );
+        await fetchItems();
+        return AppStrings.get('transaction_success', currentLocale);
+      });
+      return result ?? AppStrings.get('session_expired', currentLocale);
     } catch (e) {
       debugPrint("Error saving item: $e");
       return AppStrings.get('transaction_error', currentLocale);
@@ -242,16 +265,21 @@ class InvViewModel extends ChangeNotifier {
     if (currentUser == null) return "Error: Sin sesión";
     isLoading = true;
     notifyListeners();
-
-    final success = await _itemRepo.deleteItem(
-      localId,
-      serverId,
-      currentUser!.token,
-    );
-
-    await fetchItems();
-
-    return success ? "Eliminado" : "Marcado para borrar (Offline)";
+    try {
+      final result = await _guarded(() async {
+        final success = await _itemRepo.deleteItem(
+          localId,
+          serverId,
+          currentUser!.token,
+        );
+        await fetchItems();
+        return success ? "Eliminado" : "Marcado para borrar (Offline)";
+      });
+      return result ?? AppStrings.get('session_expired', currentLocale);
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   ///Método para registraar un nuevo usuario
@@ -292,28 +320,25 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Creamos el objeto Transaction
-      final newTx = Transaction(
-        stocks: stocks,
-        purchasePrice: price,
-        invEur: stocks * price,
-        purchaseDate: DateTime.now(),
-        isSynced: false, // Por defecto false, el repo decidirá
-      );
-      // 2. LLAMAR AL REPOSITORIO (Esto es lo que faltaba)
-      // El repo intentará MariaDB, si falla, lo dejará en SQLite (is_synced = 0)
-      await _transactionRepo.createTransaction(
-        itemId,
-        parentItem.serverId,
-        newTx,
-        currentUser!.token,
-      );
-      if (isOnline) {
-        await _transactionRepo.syncAllPendings(currentUser!.token);
-      }
-
-      // 3. Refrescar la lista
-      await fetchItems();
+      await _guarded(() async {
+        final newTx = Transaction(
+          stocks: stocks,
+          purchasePrice: price,
+          invEur: stocks * price,
+          purchaseDate: DateTime.now(),
+          isSynced: false,
+        );
+        await _transactionRepo.createTransaction(
+          itemId,
+          parentItem.serverId,
+          newTx,
+          currentUser!.token,
+        );
+        if (isOnline) {
+          await _transactionRepo.syncAllPendings(currentUser!.token);
+        }
+        await fetchItems();
+      });
     } catch (e) {
       debugPrint("Error al añadir transacción: $e");
     } finally {
