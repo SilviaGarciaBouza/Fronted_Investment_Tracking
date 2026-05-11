@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
 import '../utils/app_strings.dart';
+import '../theme/app_theme.dart';
 
 class RegisterView extends StatefulWidget {
   static const routeName = '/register';
@@ -19,8 +20,10 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     final vm = Provider.of<InvViewModel>(context);
     final lang = vm.currentLocale;
-    final primary = Theme.of(context).primaryColor;
-    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final theme = Theme.of(context);
+    final primary = theme.primaryColor;
+    final bg = theme.scaffoldBackgroundColor;
+    final cs = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: bg,
@@ -52,30 +55,28 @@ class _RegisterViewState extends State<RegisterView> {
               AppStrings.get('name', lang),
               Icons.person_outline,
               primary,
-              vm.isDarkMode,
+              cs,
               action: TextInputAction.next,
             ),
             const SizedBox(height: 25),
 
-            // Campo Email: Teclado específico y salta al siguiente
             _buildField(
               _emailController,
               AppStrings.get('email', lang),
               Icons.email_outlined,
               primary,
-              vm.isDarkMode,
+              cs,
               type: TextInputType.emailAddress,
               action: TextInputAction.next,
             ),
             const SizedBox(height: 25),
 
-            // Campo Password: Acción "Hecho" y envía el formulario al pulsar Enter
             _buildField(
               _passController,
               AppStrings.get('pass', lang),
               Icons.lock_outline,
               primary,
-              vm.isDarkMode,
+              cs,
               isPass: true,
               action: TextInputAction.done,
               onSubmitted: (_) => _handleRegister(vm, lang),
@@ -87,9 +88,7 @@ class _RegisterViewState extends State<RegisterView> {
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary,
-                      foregroundColor: vm.isDarkMode
-                          ? Colors.black
-                          : Colors.white,
+                      foregroundColor: cs.onPrimary,
                       minimumSize: const Size(double.infinity, 60),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -116,7 +115,7 @@ class _RegisterViewState extends State<RegisterView> {
     String label,
     IconData icon,
     Color color,
-    bool isDark, {
+    ColorScheme cs, {
     bool isPass = false,
     TextInputType type = TextInputType.text,
     TextInputAction action = TextInputAction.done,
@@ -128,11 +127,11 @@ class _RegisterViewState extends State<RegisterView> {
       keyboardType: type,
       textInputAction: action,
       onSubmitted: onSubmitted,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+      style: TextStyle(color: cs.onSurface),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: color),
-        labelStyle: TextStyle(color: isDark ? Colors.white60 : Colors.black54),
+        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: color.withOpacity(0.2)),
           borderRadius: BorderRadius.circular(12),
@@ -172,7 +171,9 @@ class _RegisterViewState extends State<RegisterView> {
               style: const TextStyle(color: Colors.white),
             ),
           ),
-          backgroundColor: Colors.green.shade700,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<AppColors>()!.snackSuccess,
           behavior: SnackBarBehavior.floating,
 
           shape: RoundedRectangleBorder(
@@ -191,7 +192,7 @@ class _RegisterViewState extends State<RegisterView> {
               style: const TextStyle(color: Colors.white),
             ),
           ),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: Theme.of(context).extension<AppColors>()!.snackError,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

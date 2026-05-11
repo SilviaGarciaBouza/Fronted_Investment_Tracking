@@ -7,7 +7,8 @@ import 'package:investment_tracking/views/AddTransaction.dart';
 import 'package:investment_tracking/views/total_view.dart';
 import 'package:investment_tracking/views/TransactionDetailView.dart';
 import 'package:investment_tracking/views/LoginView.dart';
-import '../models/transaction.dart'; // Importante: ahora trabajamos con Transaction
+import 'package:investment_tracking/theme/app_theme.dart';
+import '../models/transaction.dart';
 
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
@@ -54,10 +55,10 @@ class _HomeviewState extends State<Homeview> {
 
     final Color primaryColor = theme.primaryColor;
     final Color backgroundColor = theme.scaffoldBackgroundColor;
-    final Color textColor = vm.isDarkMode ? Colors.white : Colors.black;
-    final Color headerColor = vm.isDarkMode
-        ? Colors.grey.shade500
-        : Colors.grey.shade700;
+    final cs = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
+    final Color textColor = cs.onSurface;
+    final Color headerColor = cs.onSurfaceVariant;
 
     return DefaultTabController(
       length: 4,
@@ -74,7 +75,7 @@ class _HomeviewState extends State<Homeview> {
                   child: Icon(
                     vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
                     key: ValueKey(vm.isOnline),
-                    color: vm.isOnline ? primaryColor : Colors.redAccent,
+                    color: vm.isOnline ? primaryColor : appColors.danger,
                   ),
                 ),
                 tooltip: vm.isOnline
@@ -89,7 +90,7 @@ class _HomeviewState extends State<Homeview> {
                         content: Center(
                           child: Text(AppStrings.get('no_connection', lang)),
                         ),
-                        backgroundColor: Colors.red.shade700,
+                        backgroundColor: appColors.snackError,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -132,7 +133,7 @@ class _HomeviewState extends State<Homeview> {
                   Navigator.pushNamed(context, TotalView.routeName),
             ),
             IconButton(
-              icon: const Icon(Icons.logout, color: Colors.redAccent),
+              icon: Icon(Icons.logout, color: appColors.danger),
               tooltip: AppStrings.get('tooltip_logout', lang),
               onPressed: () async {
                 await vm.logout();
@@ -248,7 +249,7 @@ class _HomeviewState extends State<Homeview> {
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                  backgroundColor: Colors.green.shade700,
+                  backgroundColor: appColors.snackSuccess,
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 3),
                   shape: RoundedRectangleBorder(
@@ -422,9 +423,9 @@ class _HomeviewState extends State<Homeview> {
               ),
             ),
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.delete_outline,
-                color: Colors.redAccent,
+                color: Theme.of(context).extension<AppColors>()!.danger,
                 size: 18,
               ),
               onPressed: () => _confirmDeleteTransaction(
@@ -453,7 +454,7 @@ class _HomeviewState extends State<Homeview> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: vm.isDarkMode ? Colors.grey.shade900 : Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           "¿Borrar movimiento de $assetName?",
           style: TextStyle(color: textColor, fontSize: 16),
@@ -481,7 +482,9 @@ class _HomeviewState extends State<Homeview> {
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    backgroundColor: Colors.green.shade700,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).extension<AppColors>()!.snackSuccess,
                     behavior: SnackBarBehavior.floating,
 
                     shape: RoundedRectangleBorder(
@@ -493,8 +496,8 @@ class _HomeviewState extends State<Homeview> {
             },
             child: Text(
               AppStrings.get('delete', lang),
-              style: const TextStyle(
-                color: Colors.redAccent,
+              style: TextStyle(
+                color: Theme.of(context).extension<AppColors>()!.danger,
                 fontWeight: FontWeight.bold,
               ),
             ),

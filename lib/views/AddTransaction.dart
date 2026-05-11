@@ -61,12 +61,12 @@ class _AdditemState extends State<Additem> {
     final lang = vm.currentLocale;
     final isValid = _isFormValid();
 
-    final Color backgroundColor = Theme.of(context).scaffoldBackgroundColor;
-    final Color primaryColor = Theme.of(context).primaryColor;
-    final Color textColor = vm.isDarkMode ? Colors.white : Colors.black;
-    final Color fieldColor = vm.isDarkMode
-        ? Colors.grey.shade900
-        : Colors.grey.shade200;
+    final theme = Theme.of(context);
+    final Color backgroundColor = theme.scaffoldBackgroundColor;
+    final Color primaryColor = theme.primaryColor;
+    final cs = theme.colorScheme;
+    final Color textColor = cs.onSurface;
+    final Color fieldColor = cs.surfaceContainerHighest;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -140,7 +140,7 @@ class _AdditemState extends State<Additem> {
               initialValue: _selectedAssetName,
               disabledHint: Text(
                 AppStrings.get('asset_wait', lang),
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: cs.onSurfaceVariant),
               ),
               style: TextStyle(color: textColor),
               decoration: _inputDecoration(
@@ -212,12 +212,8 @@ class _AdditemState extends State<Additem> {
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
-                      foregroundColor: vm.isDarkMode
-                          ? Colors.black
-                          : Colors.white,
-                      disabledBackgroundColor: vm.isDarkMode
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade300,
+                      foregroundColor: cs.onPrimary,
+                      disabledBackgroundColor: cs.surfaceContainerHighest,
                       minimumSize: const Size(double.infinity, 60),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -262,13 +258,20 @@ class _AdditemState extends State<Additem> {
     Color field,
   ) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+    hintStyle: TextStyle(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      fontSize: 14,
+    ),
     prefixIcon: Icon(icon, color: primary),
     filled: true,
     fillColor: field,
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+      borderSide: BorderSide(
+        color: Theme.of(
+          context,
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+      ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),

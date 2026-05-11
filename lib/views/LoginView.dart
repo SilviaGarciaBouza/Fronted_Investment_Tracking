@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/InvViewModel.dart';
 import '../utils/app_strings.dart';
+import '../theme/app_theme.dart';
 import 'HomeView.dart';
 import 'RegisterView.dart';
 
@@ -35,7 +36,9 @@ class _LoginViewState extends State<LoginView> {
                 style: const TextStyle(color: Colors.white),
               ),
             ),
-            backgroundColor: Colors.orange.shade700,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<AppColors>()!.snackWarning,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -69,7 +72,7 @@ class _LoginViewState extends State<LoginView> {
               style: const TextStyle(color: Colors.white),
             ),
           ),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: Theme.of(context).extension<AppColors>()!.snackError,
           behavior: SnackBarBehavior.floating,
 
           shape: RoundedRectangleBorder(
@@ -84,8 +87,11 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     final vm = Provider.of<InvViewModel>(context);
     final lang = vm.currentLocale;
-    final primary = Theme.of(context).primaryColor;
-    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final theme = Theme.of(context);
+    final primary = theme.primaryColor;
+    final bg = theme.scaffoldBackgroundColor;
+    final cs = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
 
     return Scaffold(
       backgroundColor: bg,
@@ -143,9 +149,7 @@ class _LoginViewState extends State<LoginView> {
                         controller: _userController,
                         textInputAction: TextInputAction
                             .next, // Muestra "Siguiente" en el teclado
-                        style: TextStyle(
-                          color: vm.isDarkMode ? Colors.white : Colors.black,
-                        ),
+                        style: TextStyle(color: cs.onSurface),
                         decoration: _inputStyle(
                           AppStrings.get('user', lang),
                           Icons.person_outline,
@@ -159,9 +163,7 @@ class _LoginViewState extends State<LoginView> {
                         obscureText: _obscureText,
                         textInputAction: TextInputAction.done,
                         onSubmitted: (_) => _handleLogin(vm, context),
-                        style: TextStyle(
-                          color: vm.isDarkMode ? Colors.white : Colors.black,
-                        ),
+                        style: TextStyle(color: cs.onSurface),
                         decoration:
                             _inputStyle(
                               AppStrings.get('pass', lang),
@@ -188,9 +190,7 @@ class _LoginViewState extends State<LoginView> {
                           : ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primary,
-                                foregroundColor: vm.isDarkMode
-                                    ? Colors.black
-                                    : Colors.white,
+                                foregroundColor: cs.onPrimary,
                                 minimumSize: const Size(double.infinity, 55),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -217,17 +217,15 @@ class _LoginViewState extends State<LoginView> {
                             Text(
                               AppStrings.get('no_account', lang),
                               style: TextStyle(
-                                color: vm.isDarkMode
-                                    ? Colors.white70
-                                    : Colors.black54,
+                                color: cs.onSurface.withValues(alpha: 0.6),
                                 fontSize: 14,
                               ),
                             ),
                             if (!vm.isOnline)
                               Text(
                                 "Offline Mode",
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
+                                style: TextStyle(
+                                  color: appColors.danger,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
