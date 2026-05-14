@@ -434,44 +434,106 @@ class InvViewModel extends ChangeNotifier {
     final pdf = pw.Document();
     final lang = _currentLocale;
 
+    // Estilos predefinidos para limpieza visual
+    const primaryColor =
+        PdfColors.red900; // Usando un tono base fuerte como color primario
+    final headerStyle = pw.TextStyle(
+      fontSize: 18,
+      fontWeight: pw.FontWeight.bold,
+      color: primaryColor,
+    );
+    final labelStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey700);
+    final valueStyle = pw.TextStyle(
+      fontSize: 14,
+      fontWeight: pw.FontWeight.bold,
+    );
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  "InvestTracking - ${AppStrings.get('total_res', lang)}",
-                ),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text("InvestTracking", style: headerStyle),
+                  pw.Text(
+                    AppStrings.get('total_res', lang).toUpperCase(),
+                    style: labelStyle,
+                  ),
+                ],
+              ),
+              pw.Divider(thickness: 2, color: primaryColor),
+              pw.SizedBox(height: 30),
+
+              pw.Row(
+                children: [
+                  _buildSummaryStat(
+                    AppStrings.get('total_val', lang),
+                    totalCurrentValue.toStringAsFixed(2),
+                    labelStyle,
+                    valueStyle,
+                  ),
+                  pw.SizedBox(width: 20),
+                  _buildSummaryStat(
+                    AppStrings.get('init_inv', lang),
+                    totalInvestment.toStringAsFixed(2),
+                    labelStyle,
+                    valueStyle,
+                  ),
+                ],
               ),
               pw.SizedBox(height: 20),
-              pw.Text(
-                "${AppStrings.get('total_val', lang)}: ${totalCurrentValue.toStringAsFixed(2)}",
+              pw.Row(
+                children: [
+                  _buildSummaryStat(
+                    AppStrings.get('abs_pnl', lang),
+                    totalPnL.toStringAsFixed(2),
+                    labelStyle,
+                    valueStyle,
+                  ),
+                  pw.SizedBox(width: 20),
+                  _buildSummaryStat(
+                    AppStrings.get('perc_pnl', lang),
+                    "${totalPnLPercent.toStringAsFixed(2)}%",
+                    labelStyle,
+                    valueStyle,
+                    isPercent: true,
+                  ),
+                ],
               ),
-              pw.Text(
-                "${AppStrings.get('init_inv', lang)}: ${totalInvestment.toStringAsFixed(2)}",
-              ),
-              pw.Divider(),
-              pw.Text(
-                "${AppStrings.get('abs_pnl', lang)}: ${totalPnL.toStringAsFixed(2)}",
-              ),
-              pw.Text(
-                "${AppStrings.get('perc_pnl', lang)}: ${totalPnLPercent.toStringAsFixed(2)}%",
-              ),
-              pw.SizedBox(height: 20),
+
+              pw.SizedBox(height: 40),
+
               pw.Table.fromTextArray(
                 context: context,
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                border: null,
+                headerStyle: pw.TextStyle(
+                  color: PdfColors.white,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                headerDecoration: const pw.BoxDecoration(color: primaryColor),
+                rowDecoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                    bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+                  ),
+                ),
+                cellHeight: 30,
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerRight,
+                  2: pw.Alignment.centerRight,
+                },
                 data: <List<String>>[
                   <String>['Activo', 'Inversión', 'Valor Actual'],
                   ...itemList.map(
                     (item) => [
                       item.name,
-                      "${item.totalInvEur.toStringAsFixed(2)}",
-                      "${item.currentValue.toStringAsFixed(2)}",
+                      item.totalInvEur.toStringAsFixed(2),
+                      item.currentValue.toStringAsFixed(2),
                     ],
                   ),
                 ],
@@ -482,6 +544,32 @@ class InvViewModel extends ChangeNotifier {
       ),
     );
     return pdf;
+  }
+
+  pw.Widget _buildSummaryStat(
+    String label,
+    String value,
+    pw.TextStyle lStyle,
+    pw.TextStyle vStyle, {
+    bool isPercent = false,
+  }) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.grey100,
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(label.toUpperCase(), style: lStyle),
+            pw.SizedBox(height: 4),
+            pw.Text(value, style: vStyle),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<bool> syncPendingData() async {
