@@ -501,10 +501,11 @@ class _HomeviewState extends State<Homeview> {
     Color textColor,
     int itemId,
   ) {
+    final outerContext = context;
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+      context: outerContext,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Theme.of(dialogContext).colorScheme.surface,
         title: Text(
           AppStrings.get(
             'confirm_delete_transaction',
@@ -514,7 +515,7 @@ class _HomeviewState extends State<Homeview> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               AppStrings.get('cancel', lang),
               style: TextStyle(color: textColor),
@@ -522,11 +523,24 @@ class _HomeviewState extends State<Homeview> {
           ),
           TextButton(
             onPressed: () async {
+              Navigator.pop(dialogContext);
+              showDialog(
+                context: outerContext,
+                barrierDismissible: false,
+                builder: (_) => PopScope(
+                  canPop: false,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(outerContext).primaryColor,
+                    ),
+                  ),
+                ),
+              );
               await vm.deleteTransaction(tx.id, tx.serverId, itemId);
-              if (context.mounted) {
-                Navigator.pop(context);
+              if (outerContext.mounted) {
+                Navigator.pop(outerContext);
                 final offline = !vm.isOnline;
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(outerContext).showSnackBar(
                   SnackBar(
                     content: Center(
                       child: Text(
@@ -538,9 +552,11 @@ class _HomeviewState extends State<Homeview> {
                       ),
                     ),
                     backgroundColor: offline
-                        ? Theme.of(context).extension<AppColors>()!.snackWarning
+                        ? Theme.of(
+                            outerContext,
+                          ).extension<AppColors>()!.snackWarning
                         : Theme.of(
-                            context,
+                            outerContext,
                           ).extension<AppColors>()!.snackSuccess,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
@@ -553,7 +569,7 @@ class _HomeviewState extends State<Homeview> {
             child: Text(
               AppStrings.get('delete', lang),
               style: TextStyle(
-                color: Theme.of(context).extension<AppColors>()!.danger,
+                color: Theme.of(dialogContext).extension<AppColors>()!.danger,
                 fontWeight: FontWeight.bold,
               ),
             ),
