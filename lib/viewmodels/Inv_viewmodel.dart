@@ -2,9 +2,10 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/UnauthorizedException.dart';
+import 'package:investment_tracking/exceptions/Server_unavailable_exception.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import 'package:investment_tracking/models/transaction.dart';
-import 'package:investment_tracking/repositories/TransactionRepository.dart';
+import 'package:investment_tracking/repositories/Transaction_repository.dart';
 import 'package:investment_tracking/repositories/session_repository.dart';
 import 'package:investment_tracking/service/SettingsService.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
@@ -40,9 +41,24 @@ class InvViewModel extends ChangeNotifier {
   bool isLoading = false;
   bool isOnline = true;
   bool sessionExpired = false;
+  bool connectionLostNotification = false;
+  bool syncSuccessNotification = false;
+  bool syncFailureNotification = false;
 
   void clearSessionExpired() {
     sessionExpired = false;
+  }
+
+  void clearConnectionLostNotification() {
+    connectionLostNotification = false;
+  }
+
+  void clearSyncSuccessNotification() {
+    syncSuccessNotification = false;
+  }
+
+  void clearSyncFailureNotification() {
+    syncFailureNotification = false;
   }
 
   Future<T?> _guarded<T>(Future<T> Function() fn) async {
@@ -58,34 +74,53 @@ class InvViewModel extends ChangeNotifier {
 
   InvViewModel() {
     _initConnectivityListener();
-    _startHeartbeat();
   }
-  void _startHeartbeat() {
-    // Cada 10 segundos preguntams al servidor
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+
+  void _onServerUnavailable() {
+    isOnline = false;
+    _startRetryTimer();
+  }
+
+  void _startRetryTimer() {
+    if (_heartbeatTimer?.isActive == true) return;
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       _checkRealConnection();
     });
   }
 
-  /// Verifica la conexión real con el servidor y gestiona la resincronización.
-  // En InvViewModel
   Future<void> _checkRealConnection() async {
     try {
-      // Solo preguntamos si el servidor está vivo para cambiar el color del icono
       final bool hasServer = await _authRepo.checkConnection().timeout(
         const Duration(seconds: 2),
       );
-
-      if (isOnline != hasServer) {
-        isOnline = hasServer;
-        notifyListeners(); // Esto solo cambia el icono de la nube
+      if (hasServer) {
+        if (!isOnline) {
+          _heartbeatTimer?.cancel();
+          _heartbeatTimer = null;
+          isOnline = true;
+          notifyListeners();
+          if (currentUser != null) {
+            final ok = await syncPendingData();
+            if (ok)
+              syncSuccessNotification = true;
+            else
+              syncFailureNotification = true;
+            notifyListeners();
+          }
+        }
+      } else {
+        _onServerUnavailable();
       }
     } catch (_) {
-      if (isOnline) {
-        isOnline = false;
-        notifyListeners();
-      }
+      _onServerUnavailable();
     }
+  }
+
+  @override
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    _connectivitySubscription?.cancel();
+    super.dispose();
   }
 
   Future<bool> loadUserSession() async {
@@ -142,25 +177,14 @@ class InvViewModel extends ChangeNotifier {
       });
     } catch (e) {
       debugPrint("Error al borrar transacción: $e");
+      _onServerUnavailable();
+      await fetchItems();
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  ///addTransaction
-
-  //______________________--
-  /// Verifica si hay una sesión activa guardada al arrancar la App.
-  /* Future<bool> checkLocalSession() async {
-    final savedUser = await _userDao.getUser();
-    if (savedUser != null) {
-      currentUser = savedUser;
-      await fetchItems();
-      return true;
-    }
-    return false;
-  }*/
   Future<bool> checkLocalSession() async {
     try {
       final response = await _authRepo.checkConnection().timeout(
@@ -215,6 +239,9 @@ class InvViewModel extends ChangeNotifier {
           currentUser!.token,
         );
       });
+    } on ServerUnavailableException {
+      itemList = await _itemRepo.getLocalItems(currentUser!.id);
+      _onServerUnavailable();
     } catch (e) {
       debugPrint("Error en fetchItems: $e");
     } finally {
@@ -254,6 +281,8 @@ class InvViewModel extends ChangeNotifier {
       return result ?? AppStrings.get('session_expired', currentLocale);
     } catch (e) {
       debugPrint("Error saving item: $e");
+      _onServerUnavailable();
+      await fetchItems();
       return AppStrings.get('transaction_error', currentLocale);
     } finally {
       isLoading = false;
@@ -276,6 +305,10 @@ class InvViewModel extends ChangeNotifier {
         return success ? "Eliminado" : "Marcado para borrar (Offline)";
       });
       return result ?? AppStrings.get('session_expired', currentLocale);
+    } on ServerUnavailableException {
+      _onServerUnavailable();
+      await fetchItems();
+      return "Marcado para borrar (Offline)";
     } finally {
       isLoading = false;
       notifyListeners();
@@ -341,6 +374,8 @@ class InvViewModel extends ChangeNotifier {
       });
     } catch (e) {
       debugPrint("Error al añadir transacción: $e");
+      _onServerUnavailable();
+      await fetchItems();
     } finally {
       isLoading = false;
       notifyListeners();
@@ -386,7 +421,8 @@ class InvViewModel extends ChangeNotifier {
       results,
     ) {
       if (results.contains(ConnectivityResult.none)) {
-        isOnline = false;
+        if (isOnline) connectionLostNotification = true;
+        _onServerUnavailable();
         notifyListeners();
       } else {
         _checkRealConnection();
@@ -419,7 +455,6 @@ class InvViewModel extends ChangeNotifier {
                 "${AppStrings.get('init_inv', lang)}: ${totalInvestment.toStringAsFixed(2)}",
               ),
               pw.Divider(),
-              // Usamos las claves que ya tienes en la UI para ser consistentes
               pw.Text(
                 "${AppStrings.get('abs_pnl', lang)}: ${totalPnL.toStringAsFixed(2)}",
               ),
@@ -449,11 +484,17 @@ class InvViewModel extends ChangeNotifier {
     return pdf;
   }
 
-  Future<void> syncPendingData() async {
-    if (currentUser == null) return;
-    await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
+  Future<bool> syncPendingData() async {
+    if (currentUser == null) return false;
+    bool success = true;
+    try {
+      await _itemRepo.syncPendingData(currentUser!.id, currentUser!.token);
+    } on ServerUnavailableException {
+      success = false;
+    }
     await fetchItems();
     notifyListeners();
+    return success;
   }
 
   double get totalCurrentValue =>

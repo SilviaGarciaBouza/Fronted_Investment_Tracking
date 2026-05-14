@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:investment_tracking/UnauthorizedException.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
+import 'package:investment_tracking/exceptions/server_http_exception.dart';
 
 /// Servicio central de comunicaciones HTTP.
 ///
@@ -9,8 +10,8 @@ import 'package:investment_tracking/UnauthorizedException.dart';
 class ApiService {
   /// URL base para el emulador de Android .
   //final String baseUrl = "http://10.0.2.2:8080/api";
-  final String baseUrl = "http://localhost:8080/api";
-  /*static String get baseUrl {
+  final String baseUrl =
+      "http://localhost:8080/api"; /*static String get baseUrl {
     if (kIsWeb) {
       return "http://localhost:8080/api";
     } else if (Platform.isAndroid) {
@@ -35,10 +36,12 @@ class ApiService {
         .timeout(_timeout);
     if (response.statusCode == 200) return json.decode(response.body);
     if (response.statusCode == 401) throw UnauthorizedException();
+    if (response.statusCode >= 500)
+      throw ServerHttpException(response.statusCode);
     throw Exception('Error en GET $endpoint: ${response.statusCode}');
   }
 
-  /// Realiza una petición POST. Retorna el cuerpo decodificado o null si hay error 401.
+  /// Realiza una petición POST. Lanza UnauthorizedException en 401.
   Future<dynamic> post(
     String endpoint,
     Map<String, dynamic> data, {
@@ -54,7 +57,9 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body);
     } else if (response.statusCode == 401) {
-      return null;
+      throw UnauthorizedException();
+    } else if (response.statusCode >= 500) {
+      throw ServerHttpException(response.statusCode);
     }
     throw Exception('Error en POST $endpoint: ${response.statusCode}');
   }
@@ -64,7 +69,10 @@ class ApiService {
     final response = await http
         .delete(Uri.parse('$baseUrl$endpoint'), headers: _getHeaders(token))
         .timeout(_timeout);
-    if (response.statusCode == 200) return json.decode(response.body);
-    return response.statusCode == 200 || response.statusCode == 204;
+    if (response.statusCode == 200 || response.statusCode == 204) return true;
+    if (response.statusCode == 401) throw UnauthorizedException();
+    if (response.statusCode >= 500)
+      throw ServerHttpException(response.statusCode);
+    return false;
   }
 }

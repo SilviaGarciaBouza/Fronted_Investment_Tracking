@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
-import 'package:investment_tracking/views/AddTransaction.dart';
+import 'package:investment_tracking/views/add_transaction.dart';
 import 'package:investment_tracking/views/total_view.dart';
-import 'package:investment_tracking/views/TransactionDetailView.dart';
-import 'package:investment_tracking/views/LoginView.dart';
+import 'package:investment_tracking/views/transaction_detail_view.dart';
+import 'package:investment_tracking/views/login_view.dart';
 import 'package:investment_tracking/theme/app_theme.dart';
 import '../models/transaction.dart';
 
@@ -37,12 +37,70 @@ class _HomeviewState extends State<Homeview> {
   }
 
   void _onVmChange() {
-    if (_vm?.sessionExpired == true && mounted) {
+    if (!mounted) return;
+    if (_vm?.sessionExpired == true) {
       _vm!.clearSessionExpired();
       Navigator.pushReplacementNamed(
         context,
         LoginView.routeName,
         arguments: {'sessionExpired': true},
+      );
+      return;
+    }
+    if (_vm?.connectionLostNotification == true) {
+      _vm!.clearConnectionLostNotification();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('no_connection', _vm!.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Theme.of(context).extension<AppColors>()!.snackError,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+    if (_vm?.syncSuccessNotification == true) {
+      _vm!.clearSyncSuccessNotification();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('sync_success', _vm!.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Theme.of(
+            context,
+          ).extension<AppColors>()!.snackSuccess,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+    if (_vm?.syncFailureNotification == true) {
+      _vm!.clearSyncFailureNotification();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('sync_error', _vm!.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Theme.of(context).extension<AppColors>()!.snackError,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     }
   }
@@ -69,33 +127,21 @@ class _HomeviewState extends State<Homeview> {
           elevation: 0,
           leading: Consumer<InvViewModel>(
             builder: (context, vm, child) {
-              return IconButton(
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Icon(
-                    vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
-                    key: ValueKey(vm.isOnline),
-                    color: vm.isOnline ? primaryColor : appColors.danger,
-                  ),
-                ),
-                tooltip: vm.isOnline
+              return Tooltip(
+                message: vm.isOnline
                     ? AppStrings.get('tooltip_sync', lang)
                     : AppStrings.get('tooltip_no_sync', lang),
-                onPressed: () {
-                  if (vm.isOnline) {
-                    vm.syncPendingData();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Center(
-                          child: Text(AppStrings.get('no_connection', lang)),
-                        ),
-                        backgroundColor: appColors.snackError,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                },
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      vm.isOnline ? Icons.cloud_done : Icons.cloud_off,
+                      key: ValueKey(vm.isOnline),
+                      color: vm.isOnline ? primaryColor : appColors.danger,
+                    ),
+                  ),
+                ),
               );
             },
           ),
@@ -239,17 +285,21 @@ class _HomeviewState extends State<Homeview> {
               Additem.routeName,
             );
             if (context.mounted) vm.fetchItems();
-
-            if (result.runtimeType == String && context.mounted) {
+            if (result != null && context.mounted) {
+              final offline = !vm.isOnline;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Center(
                     child: Text(
-                      result! as String,
+                      offline
+                          ? AppStrings.get('offline_created', vm.currentLocale)
+                          : result as String,
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                  backgroundColor: appColors.snackSuccess,
+                  backgroundColor: offline
+                      ? appColors.snackWarning
+                      : appColors.snackSuccess,
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 3),
                   shape: RoundedRectangleBorder(
@@ -456,7 +506,10 @@ class _HomeviewState extends State<Homeview> {
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
-          "¿Borrar movimiento de $assetName?",
+          AppStrings.get(
+            'confirm_delete_transaction',
+            lang,
+          ).replaceAll('{name}', assetName),
           style: TextStyle(color: textColor, fontSize: 16),
         ),
         actions: [
@@ -470,23 +523,26 @@ class _HomeviewState extends State<Homeview> {
           TextButton(
             onPressed: () async {
               await vm.deleteTransaction(tx.id, tx.serverId, itemId);
-
               if (context.mounted) {
                 Navigator.pop(context);
-
+                final offline = !vm.isOnline;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Center(
                       child: Text(
-                        AppStrings.get('transaction_deleted', vm.currentLocale),
+                        AppStrings.get(
+                          offline ? 'offline_deleted' : 'transaction_deleted',
+                          vm.currentLocale,
+                        ),
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    backgroundColor: Theme.of(
-                      context,
-                    ).extension<AppColors>()!.snackSuccess,
+                    backgroundColor: offline
+                        ? Theme.of(context).extension<AppColors>()!.snackWarning
+                        : Theme.of(
+                            context,
+                          ).extension<AppColors>()!.snackSuccess,
                     behavior: SnackBarBehavior.floating,
-
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

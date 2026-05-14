@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:investment_tracking/views/splash_view.dart';
 import 'package:provider/provider.dart';
 import 'package:investment_tracking/theme/app_theme.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
-import 'package:investment_tracking/views/AddTransaction.dart';
-import 'package:investment_tracking/views/HomeView.dart';
-import 'package:investment_tracking/views/RegisterView.dart';
-import 'package:investment_tracking/views/LoginView.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
+import 'package:investment_tracking/views/add_transaction.dart';
+import 'package:investment_tracking/views/home_view.dart';
+import 'package:investment_tracking/views/register_view.dart';
+import 'package:investment_tracking/views/login_view.dart';
 import 'package:investment_tracking/views/total_view.dart';
 
 void main() {

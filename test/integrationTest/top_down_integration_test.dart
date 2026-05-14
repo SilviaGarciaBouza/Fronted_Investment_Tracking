@@ -6,7 +6,7 @@ import 'package:investment_tracking/dao/user_dao.dart';
 import 'package:investment_tracking/database/database_helper.dart';
 import 'package:investment_tracking/models/user.dart';
 import 'package:investment_tracking/repositories/session_repository.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
 import '../helpers/db_test_helper.dart';
 import '../helpers/http_mock.dart';
 

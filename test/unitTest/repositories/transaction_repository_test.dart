@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:investment_tracking/database/database_helper.dart';
 import 'package:investment_tracking/models/transaction.dart';
-import 'package:investment_tracking/repositories/TransactionRepository.dart';
+import 'package:investment_tracking/repositories/Transaction_repository.dart';
 import '../../helpers/db_test_helper.dart';
 import '../../helpers/http_mock.dart';
 
@@ -45,41 +45,49 @@ void main() {
       });
     });
 
-    test('deleteTransaction without serverId deletes physically and returns true',
-        () async {
-      final db = await DatabaseHelper.instance.database;
-      final localId = await db.insert('transactions', {
-        'item_id': itemId,
-        'stocks': 1.0,
-        'purchase_price': 50000.0,
-        'inv_eur': 50000.0,
-        'purchase_date': DateTime.now().toIso8601String(),
-        'is_synced': 0,
-        'is_deleted': 0,
-      });
+    test(
+      'deleteTransaction without serverId deletes physically and returns true',
+      () async {
+        final db = await DatabaseHelper.instance.database;
+        final localId = await db.insert('transactions', {
+          'item_id': itemId,
+          'stocks': 1.0,
+          'purchase_price': 50000.0,
+          'inv_eur': 50000.0,
+          'purchase_date': DateTime.now().toIso8601String(),
+          'is_synced': 0,
+          'is_deleted': 0,
+        });
 
-      final result = await TransactionRepository().deleteTransaction(
-        localId,
-        null,
-        'token',
-      );
+        final result = await TransactionRepository().deleteTransaction(
+          localId,
+          null,
+          'token',
+        );
 
-      expect(result, isTrue);
-      final rows = await db
-          .query('transactions', where: 'id = ?', whereArgs: [localId]);
-      expect(rows, isEmpty);
-    });
+        expect(result, isTrue);
+        final rows = await db.query(
+          'transactions',
+          where: 'id = ?',
+          whereArgs: [localId],
+        );
+        expect(rows, isEmpty);
+      },
+    );
 
-    test('getHomeTransactions returns empty list when there are no transactions',
-        () async {
-      final txs =
-          await TransactionRepository().getHomeTransactions(userId, 'token');
+    test(
+      'getHomeTransactions returns empty list when there are no transactions',
+      () async {
+        final txs = await TransactionRepository().getHomeTransactions(
+          userId,
+          'token',
+        );
 
-      expect(txs, isEmpty);
-    });
+        expect(txs, isEmpty);
+      },
+    );
 
-    test('createTransaction saves locally and syncs with server',
-        () async {
+    test('createTransaction saves locally and syncs with server', () async {
       final tx = Transaction(
         itemId: itemId,
         stocks: 0.5,
@@ -89,12 +97,7 @@ void main() {
         isSynced: false,
       );
 
-      await TransactionRepository().createTransaction(
-        itemId,
-        10,
-        tx,
-        'token',
-      );
+      await TransactionRepository().createTransaction(itemId, 10, tx, 'token');
 
       final db = await DatabaseHelper.instance.database;
       final rows = await db.query(

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:investment_tracking/database/database_helper.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
 import 'package:investment_tracking/models/category.dart';
 import 'package:investment_tracking/models/item.dart';
 import 'package:investment_tracking/models/transaction.dart';
@@ -184,12 +184,9 @@ void main() {
       expect(vm.categories, isEmpty);
     });
 
-    test(
-      'loadUserSession returns false when no session is stored',
-      () async {
-        expect(await InvViewModel().loadUserSession(), isFalse);
-      },
-    );
+    test('loadUserSession returns false when no session is stored', () async {
+      expect(await InvViewModel().loadUserSession(), isFalse);
+    });
 
     test(
       'loadUserSession returns true when userId is in SharedPreferences',
@@ -217,27 +214,21 @@ void main() {
       },
     );
 
-    test(
-      'checkLocalSession returns false when no user is in SQLite',
-      () async {
-        expect(await InvViewModel().checkLocalSession(), isFalse);
-      },
-    );
+    test('checkLocalSession returns false when no user is in SQLite', () async {
+      expect(await InvViewModel().checkLocalSession(), isFalse);
+    });
   });
 
   group('InvViewModel: authentication', () {
-    test(
-      'login returns true, sets currentUser and marks isOnline',
-      () async {
-        final vm = InvViewModel();
-        final success = await vm.login('alice', '1234');
+    test('login returns true, sets currentUser and marks isOnline', () async {
+      final vm = InvViewModel();
+      final success = await vm.login('alice', '1234');
 
-        expect(success, isTrue);
-        expect(vm.currentUser?.username, 'alice');
-        expect(vm.currentUser?.token, 'tok');
-        expect(vm.isOnline, isTrue);
-      },
-    );
+      expect(success, isTrue);
+      expect(vm.currentUser?.username, 'alice');
+      expect(vm.currentUser?.token, 'tok');
+      expect(vm.isOnline, isTrue);
+    });
 
     test('register returns true when server responds with 201', () async {
       expect(
@@ -248,18 +239,15 @@ void main() {
   });
 
   group('InvViewModel: data loading', () {
-    test(
-      'fetchCategories populates the list when user is active',
-      () async {
-        final vm = InvViewModel();
-        await vm.login('alice', '1234');
+    test('fetchCategories populates the list when user is active', () async {
+      final vm = InvViewModel();
+      await vm.login('alice', '1234');
 
-        await vm.fetchCategories();
+      await vm.fetchCategories();
 
-        expect(vm.categories, isNotEmpty);
-        expect(vm.categories.first.name, 'Crypto');
-      },
-    );
+      expect(vm.categories, isNotEmpty);
+      expect(vm.categories.first.name, 'Crypto');
+    });
 
     test('fetchCategories does nothing when no user is active', () async {
       final vm = InvViewModel();

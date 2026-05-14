@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
 
 class Additem extends StatefulWidget {

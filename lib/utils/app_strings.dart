@@ -59,6 +59,11 @@ class AppStrings {
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error al realizar la operación',
       'transaction_deleted': 'Operación borrada',
+      'offline_deleted': 'Movimiento eliminado (pendiente de sincronizar)',
+      'offline_created': 'Movimiento creado (pendiente de sincronizar)',
+      'sync_success': 'Sincronización completada con éxito',
+      'sync_error': 'Error al sincronizar con el servidor',
+      'confirm_delete_transaction': '¿Borrar movimiento de {name}?',
 
       /// Add Item
       'new_inv': 'NUEVA INVERSIÓN',
@@ -133,6 +138,11 @@ class AppStrings {
       'transaction_success': 'Operación realizada con exito',
       'transaction_error': 'Error realizando a operación',
       'transaction_deleted': 'Operación borrada',
+      'offline_deleted': 'Movemento eliminado (pendente de sincronizar)',
+      'offline_created': 'Movemento creado (pendente de sincronizar)',
+      'sync_success': 'Sincronización completada con éxito',
+      'sync_error': 'Erro ao sincronizar co servidor',
+      'confirm_delete_transaction': '¿Borrar movemento de {name}?',
 
       'tab_all': 'TODO',
       'tab_stocks': 'ACCIÓNS',
@@ -208,6 +218,11 @@ class AppStrings {
       'transaction_success': 'Transaction completed successfully',
       'transaction_error': 'Error completing transaction',
       'transaction_deleted': 'Transaction deleted',
+      'offline_deleted': 'Entry deleted (pending sync)',
+      'offline_created': 'Entry created (pending sync)',
+      'sync_success': 'Sync completed successfully',
+      'sync_error': 'Failed to sync with server',
+      'confirm_delete_transaction': 'Delete entry for {name}?',
 
       'tab_all': 'ALL',
       'tab_stocks': 'SHARES',

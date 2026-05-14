@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:investment_tracking/viewmodels/InvViewModel.dart';
-import 'package:investment_tracking/views/HomeView.dart';
-import 'package:investment_tracking/views/LoginView.dart';
+import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
+import 'package:investment_tracking/views/home_view.dart';
+import 'package:investment_tracking/views/login_view.dart';
 import 'package:provider/provider.dart';
 
 class SplashView extends StatelessWidget {

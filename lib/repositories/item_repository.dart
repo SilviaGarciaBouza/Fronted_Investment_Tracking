@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:investment_tracking/UnauthorizedException.dart';
 import 'package:investment_tracking/dao/caegory_dao.dart';
 import 'package:investment_tracking/dao/transaction_dao.dart';
+import 'package:investment_tracking/exceptions/Server_unavailable_exception.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import 'package:investment_tracking/models/transaction.dart';
+import 'package:investment_tracking/utils/network_error_utils.dart';
 import '../models/category.dart';
 import '../dao/item_dao.dart';
 import '../models/item.dart';
@@ -28,8 +30,9 @@ class ItemRepository {
       return await _itemDao.getItems(userId);
     } catch (e) {
       if (e is UnauthorizedException) rethrow;
+      if (!isServerUnavailableError(e)) rethrow;
       debugPrint("Modo Offline: No se pudo refrescar desde el servidor.");
-      return await getLocalItems(userId);
+      throw ServerUnavailableException();
     }
   }
 
@@ -59,7 +62,9 @@ class ItemRepository {
       }
     } catch (e) {
       if (e is UnauthorizedException) rethrow;
+      if (!isServerUnavailableError(e)) rethrow;
       await _itemDao.saveItemOffline(item, stocks, price, userId);
+      throw ServerUnavailableException();
     }
   }
 
@@ -81,8 +86,9 @@ class ItemRepository {
       return false;
     } catch (e) {
       if (e is UnauthorizedException) rethrow;
+      if (!isServerUnavailableError(e)) rethrow;
       await _itemDao.markForDeletion(localId);
-      return false;
+      throw ServerUnavailableException();
     }
   }
 
@@ -132,6 +138,7 @@ class ItemRepository {
       }
     } catch (e) {
       if (e is UnauthorizedException) rethrow;
+      if (!isServerUnavailableError(e)) rethrow;
       await _transactionDao.markForDeletion(localId);
       numTransactionItems = await _transactionDao.getTransactionItemsCount(
         itemId,
@@ -139,7 +146,7 @@ class ItemRepository {
       if (numTransactionItems == 0) {
         _itemDao.markForDeletion(itemId);
       }
-      return false;
+      throw ServerUnavailableException();
     }
   }
 
@@ -179,11 +186,9 @@ class ItemRepository {
   }
 
   Future<void> syncPendingData(int userId, String token) async {
-    //borro items
-    final List<Item> pendingItemDeletes = await _itemDao.getPendingDeletions(
-      userId,
-    );
-    for (var item in pendingItemDeletes) {
+    bool serverError = false;
+
+    for (var item in await _itemDao.getPendingDeletions(userId)) {
       try {
         if (item.serverId != null) {
           final success = await _apiService.delete(
@@ -194,13 +199,11 @@ class ItemRepository {
         }
       } catch (e) {
         debugPrint("Error borrando item: $e");
+        if (isServerUnavailableError(e)) serverError = true;
       }
     }
-    //borro trans
-    final List<Transaction> pendingTransactionDeletes = await _transactionDao
-        .getPendingToDelete();
 
-    for (var t in pendingTransactionDeletes) {
+    for (var t in await _transactionDao.getPendingToDelete()) {
       try {
         if (t.serverId != null) {
           final success = await _apiService.delete(
@@ -211,38 +214,34 @@ class ItemRepository {
         }
       } catch (e) {
         debugPrint("Error borrando transacción: $e");
+        if (isServerUnavailableError(e)) serverError = true;
       }
     }
-    //subo item
-    final List<Item> pendingItemSync = await _itemDao.getUnsyncedItems(userId);
-    for (var item in pendingItemSync) {
+
+    for (var item in await _itemDao.getUnsyncedItems(userId)) {
       try {
         if (item.serverId == null) {
           final success = await _apiService.post('/items', {
             'name': item.name,
             'categoryId': item.category.id,
             'transactions': [],
-            // 'isSynced': false,
             'currentPrice': 0.0,
             'userId': userId,
             'initialStocks': 0,
           }, token: token);
-
           if (success != null && success['id'] != null) {
             await _itemDao.markAsSynced(item.id!, success['id']);
           }
         }
       } catch (e) {
         debugPrint("Error subiendo item: $e");
+        if (isServerUnavailableError(e)) serverError = true;
       }
     }
-    final List<Transaction> pendingTransactionSync = await _transactionDao
-        .getUnsyncTransactions();
 
-    for (var transaction in pendingTransactionSync) {
+    for (var transaction in await _transactionDao.getUnsyncTransactions()) {
       try {
         final parentItem = await _itemDao.getItemById(transaction.itemId!);
-
         if (parentItem != null && parentItem.serverId != null) {
           final response = await _apiService
               .post('/transactions/item/${parentItem.serverId}', {
@@ -258,7 +257,10 @@ class ItemRepository {
         }
       } catch (e) {
         debugPrint("Error subiendo trans: $e");
+        if (isServerUnavailableError(e)) serverError = true;
       }
     }
+
+    if (serverError) throw ServerUnavailableException();
   }
 }

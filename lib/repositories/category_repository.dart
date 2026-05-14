@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:investment_tracking/dao/caegory_dao.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import '../models/category.dart';
 import '../service/api_service.dart';
 
@@ -25,6 +26,7 @@ class CategoryRepository {
       await _categoryDao.saveCategories(categories);
       return categories;
     } catch (e) {
+      if (e is UnauthorizedException) rethrow;
       debugPrint("Categorías desde SQLite (Offline): $e");
       return await _categoryDao.getCategories();
     }

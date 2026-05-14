@@ -1,0 +1,1 @@
+class ServerUnavailableException implements Exception {}

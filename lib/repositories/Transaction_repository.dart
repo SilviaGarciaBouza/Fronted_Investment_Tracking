@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:investment_tracking/UnauthorizedException.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import '../dao/transaction_dao.dart';
 import '../models/transaction.dart';
 import '../service/api_service.dart';

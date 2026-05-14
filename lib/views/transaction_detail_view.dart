@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/item.dart';
-import '../viewmodels/InvViewModel.dart';
+import '../viewmodels/Inv_viewmodel.dart';
 import '../utils/app_strings.dart';
 import '../theme/app_theme.dart';
 
