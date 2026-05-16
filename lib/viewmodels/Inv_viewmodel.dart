@@ -128,8 +128,8 @@ class InvViewModel extends ChangeNotifier {
     final userId = await _sessionRepo.getUserId();
     if (userId == null) return false;
     currentUser = await _authRepo.loadUser();
-    if (currentUser == null) return false;
-    await fetchItems();
+    // if (currentUser == null) return false;
+    // await fetchItems();
     return currentUser != null;
   }
 
