@@ -86,7 +86,7 @@ class TotalView extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '${vm.totalCurrentValue.toStringAsFixed(2)}€',
+                    '${vm.totalCurrentValue.toStringAsFixed(2)}\$',
                     style: TextStyle(
                       color: cs.onSurface,
                       fontSize: 32,
@@ -100,13 +100,13 @@ class TotalView extends StatelessWidget {
             _infoTile(
               context,
               AppStrings.get('init_inv', lang),
-              '${vm.totalInvestment.toStringAsFixed(2)}€',
+              '${vm.totalInvestment.toStringAsFixed(2)}\$',
               cs.onSurface,
             ),
             _infoTile(
               context,
               AppStrings.get('abs_pnl', lang),
-              '${vm.totalPnL.toStringAsFixed(2)}€',
+              '${vm.totalPnL.toStringAsFixed(2)}\$',
               getNplColor(vm.totalPnL),
             ),
             _infoTile(

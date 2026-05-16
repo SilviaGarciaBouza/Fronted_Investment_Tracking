@@ -40,13 +40,13 @@ class TransactionDetailView extends StatelessWidget {
               children: [
                 _col(
                   AppStrings.get('avg', lang),
-                  "${item.totalStocks == 0 ? '0.00' : (item.totalInvEur / item.totalStocks).toStringAsFixed(2)}€",
+                  "${item.totalStocks == 0 ? '0.00' : (item.totalInvEur / item.totalStocks).toStringAsFixed(2)}\$",
                   cs.onSurfaceVariant,
                   cs.onSurface,
                 ),
                 _col(
                   AppStrings.get('current', lang),
-                  "${item.currentPrice}€",
+                  "${item.currentPrice}\$",
                   cs.onSurfaceVariant,
                   cs.onSurface,
                 ),
@@ -71,11 +71,11 @@ class TransactionDetailView extends StatelessWidget {
                       style: TextStyle(color: cs.onSurface),
                     ),
                     subtitle: Text(
-                      "${tx.stocks} x ${tx.purchasePrice}€",
+                      "${tx.stocks} x ${tx.purchasePrice}\$",
                       style: TextStyle(color: cs.onSurfaceVariant),
                     ),
                     trailing: Text(
-                      "${txPnL.toStringAsFixed(2)}€",
+                      "${txPnL.toStringAsFixed(2)}\$",
                       style: TextStyle(
                         color: txPnL >= 0
                             ? appColors.pnlPositive

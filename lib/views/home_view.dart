@@ -464,7 +464,7 @@ class _HomeviewState extends State<Homeview> {
             Expanded(
               flex: 3,
               child: Text(
-                "${tx.invEur.toStringAsFixed(2)}€",
+                "${tx.invEur.toStringAsFixed(2)}\$",
                 style: TextStyle(
                   color: primary,
                   fontWeight: FontWeight.bold,

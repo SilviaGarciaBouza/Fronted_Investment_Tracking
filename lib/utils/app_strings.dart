@@ -1,5 +1,5 @@
 class AppStrings {
-  static const Map<String, Map<String, String>> _values = {
+  static final Map<String, Map<String, String>> _values = {
     'es': {
       /// Login y Register
       'login_title': 'GESTOR DE INVERSIONES',
@@ -73,7 +73,7 @@ class AppStrings {
       'asset_hint': 'Selecciona activo',
       'asset_wait': 'Elige categoría primero',
       'qty_label': 'CANTIDAD (> 0)',
-      'price_label': 'PRECIO (€ > 0)',
+      'price_label': 'PRECIO (> 0)',
       'btn_confirm': 'CONFIRMAR OPERACIÓN',
       'btn_incomplete': 'COMPLETA LOS DATOS',
 
@@ -88,7 +88,7 @@ class AppStrings {
       'tooltip_print': 'Imprimir informe PDF',
       'pdf_generated': 'Informe generado correctamente',
     },
-    'gl': {
+    'gl': const {
       'login_title': 'XESTOR DE INVERSIÓNS',
       'login_error': 'Error logueando',
       'reg_title': 'NOVA CONTA',
@@ -156,7 +156,7 @@ class AppStrings {
       'asset_hint': 'Selecciona activo',
       'asset_wait': 'Elixe categoría primeiro',
       'qty_label': 'CANTIDADE (> 0)',
-      'price_label': 'PREZO (€ > 0)',
+      'price_label': 'PREZO (> 0)',
       'btn_confirm': 'CONFIRMAR OPERACIÓN',
       'btn_incomplete': 'COMPLETA OS DATOS',
       'total_res': 'RESUMO XERAL',
@@ -170,7 +170,7 @@ class AppStrings {
       'tooltip_print': 'Imprimir informe PDF',
       'pdf_generated': 'Informe xerado correctamente',
     },
-    'en': {
+    'en': const {
       'login_title': 'INVESTMENT MANAGER',
       'login_error': 'Error logging in',
       'reg_title': 'NEW ACCOUNT',
@@ -236,7 +236,7 @@ class AppStrings {
       'asset_hint': 'Select asset',
       'asset_wait': 'Pick category first',
       'qty_label': 'QUANTITY (> 0)',
-      'price_label': 'PRICE (€ > 0)',
+      'price_label': 'PRICE (> 0)',
       'btn_confirm': 'CONFIRM OPERATION',
       'btn_incomplete': 'COMPLETE DATA',
       'total_res': 'GENERAL SUMMARY',

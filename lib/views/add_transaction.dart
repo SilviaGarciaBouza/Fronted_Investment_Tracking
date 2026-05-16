@@ -23,7 +23,7 @@ class _AdditemState extends State<Additem> {
   final Map<String, List<String>> _assetsByCategory = {
     'Acción': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA'],
     'Criptomoneda': ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'ADAUSDT', 'XRPUSDT'],
-    'Divisa': ['EUR/USD', 'EUR/GBP', 'EUR/JPY', 'EUR/CHF'],
+    'Divisa': ['USD/EUR', 'USD/GBP', 'USD/JPY', 'USD/CHF'],
   };
 
   @override
@@ -194,7 +194,7 @@ class _AdditemState extends State<Additem> {
                       const SizedBox(height: 10),
                       _textField(
                         _priceController,
-                        "0.00 €",
+                        "0.00 ",
                         primaryColor,
                         fieldColor,
                         textColor,
