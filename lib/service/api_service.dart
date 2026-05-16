@@ -36,8 +36,9 @@ class ApiService {
         .timeout(_timeout);
     if (response.statusCode == 200) return json.decode(response.body);
     if (response.statusCode == 401) throw UnauthorizedException();
-    if (response.statusCode >= 500)
+    if (response.statusCode >= 500) {
       throw ServerHttpException(response.statusCode);
+    }
     throw Exception('Error en GET $endpoint: ${response.statusCode}');
   }
 
@@ -71,8 +72,9 @@ class ApiService {
         .timeout(_timeout);
     if (response.statusCode == 200 || response.statusCode == 204) return true;
     if (response.statusCode == 401) throw UnauthorizedException();
-    if (response.statusCode >= 500)
+    if (response.statusCode >= 500) {
       throw ServerHttpException(response.statusCode);
+    }
     return false;
   }
 }

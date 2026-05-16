@@ -4,28 +4,44 @@ import 'package:investment_tracking/views/home_view.dart';
 import 'package:investment_tracking/views/login_view.dart';
 import 'package:provider/provider.dart';
 
-class SplashView extends StatelessWidget {
+class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<SplashView> createState() => _SplashViewState();
+}
+
+class _SplashViewState extends State<SplashView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkSession());
+  }
+
+  Future<void> _checkSession() async {
     final vm = Provider.of<InvViewModel>(context, listen: false);
-    return FutureBuilder<bool>(
-      future: vm.loadUserSession(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError) {
-          return const LoginView();
-        } else if (snapshot.data == true) {
-          return const Homeview();
-        } else {
-          return const LoginView();
-        }
-      },
+    final hasSession = await vm.loadUserSession();
+    if (!mounted) return;
+    if (hasSession) {
+      Navigator.pushReplacementNamed(context, Homeview.routeName);
+    } else {
+      final wasExpired = vm.sessionExpired;
+      if (wasExpired) vm.clearSessionExpired();
+      Navigator.pushReplacementNamed(
+        context,
+        LoginView.routeName,
+        arguments: wasExpired ? {'sessionExpired': true} : null,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Center(
+        child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
+      ),
     );
   }
 }

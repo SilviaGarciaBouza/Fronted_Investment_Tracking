@@ -130,11 +130,35 @@ class _LoginViewState extends State<LoginView> {
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
                   child: Column(
                     children: [
-                      const Spacer(flex: 2),
+                      const Spacer(flex: 1),
+                      Center(
+                        child: Container(
+                          height: 250,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: primary.withOpacity(0.1),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
                       SizedBox(
                         width: double.infinity,
                         child: Text(
                           AppStrings.get('login_title', lang),
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             color: primary,
                             fontSize: 32,
@@ -142,7 +166,10 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 40),
+                      const Spacer(flex: 2),
+
+                      const SizedBox(height: 10),
 
                       // --- CAMPO USUARIO ---
                       TextField(

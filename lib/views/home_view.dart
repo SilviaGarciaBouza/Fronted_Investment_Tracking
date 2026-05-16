@@ -450,7 +450,7 @@ class _HomeviewState extends State<Homeview> {
             Expanded(
               flex: 2,
               child: Text(
-                "${tx.purchaseDate.day}/${tx.purchaseDate.month}",
+                "${tx.purchaseDate.day}/${tx.purchaseDate.month}/${tx.purchaseDate.year.toString().substring(2)}",
                 style: TextStyle(color: text, fontSize: 11),
               ),
             ),
@@ -462,7 +462,7 @@ class _HomeviewState extends State<Homeview> {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Text(
                 "${tx.invEur.toStringAsFixed(2)}€",
                 style: TextStyle(
