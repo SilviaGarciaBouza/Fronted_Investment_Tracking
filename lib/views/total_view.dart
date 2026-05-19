@@ -40,23 +40,46 @@ class TotalView extends StatelessWidget {
             icon: const Icon(Icons.print_outlined),
             tooltip: AppStrings.get('tooltip_print', lang),
             onPressed: () async {
-              final pdfDoc = await vm.generateGeneralReport();
-
-              await Printing.layoutPdf(
-                onLayout: (PdfPageFormat format) async => pdfDoc.save(),
-                name:
-                    'informe_investtrackin_${DateTime.now().millisecondsSinceEpoch}.pdf',
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const PopScope(
+                  canPop: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
               );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Center(
-                      child: Text(AppStrings.get('pdf_generated', lang)),
-                    ),
-                    backgroundColor: primary,
-                    behavior: SnackBarBehavior.floating,
-                  ),
+              try {
+                final pdfDoc = await vm.generateGeneralReport();
+                await Printing.layoutPdf(
+                  onLayout: (PdfPageFormat format) async => pdfDoc.save(),
+                  name:
+                      'informe_investtrackin_${DateTime.now().millisecondsSinceEpoch}.pdf',
                 );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Center(
+                        child: Text(AppStrings.get('pdf_generated', lang)),
+                      ),
+                      backgroundColor: primary,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Center(
+                        child: Text(AppStrings.get('transaction_error', lang)),
+                      ),
+                      backgroundColor: appColors.snackError,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               }
             },
           ),

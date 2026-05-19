@@ -59,28 +59,31 @@ class TransactionDetailView extends StatelessWidget {
               itemBuilder: (context, index) {
                 final tx = item.transactions[index];
                 final txPnL = (tx.stocks * item.currentPrice) - tx.invEur;
-                return Card(
-                  color: cs.surface,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 5,
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      DateFormat('dd/MM/yyyy').format(tx.purchaseDate),
-                      style: TextStyle(color: cs.onSurface),
+                return KeyedSubtree(
+                  key: ValueKey(tx.id),
+                  child: Card(
+                    color: cs.surface,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 5,
                     ),
-                    subtitle: Text(
-                      "${tx.stocks} x ${tx.purchasePrice}\$",
-                      style: TextStyle(color: cs.onSurfaceVariant),
-                    ),
-                    trailing: Text(
-                      "${txPnL.toStringAsFixed(2)}\$",
-                      style: TextStyle(
-                        color: txPnL >= 0
-                            ? appColors.pnlPositive
-                            : appColors.pnlNegative,
-                        fontWeight: FontWeight.bold,
+                    child: ListTile(
+                      title: Text(
+                        DateFormat('dd/MM/yyyy').format(tx.purchaseDate),
+                        style: TextStyle(color: cs.onSurface),
+                      ),
+                      subtitle: Text(
+                        "${tx.stocks} x ${tx.purchasePrice}\$",
+                        style: TextStyle(color: cs.onSurfaceVariant),
+                      ),
+                      trailing: Text(
+                        "${txPnL.toStringAsFixed(2)}\$",
+                        style: TextStyle(
+                          color: txPnL >= 0
+                              ? appColors.pnlPositive
+                              : appColors.pnlNegative,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

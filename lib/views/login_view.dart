@@ -59,6 +59,27 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _handleLogin(InvViewModel vm, BuildContext context) async {
     if (vm.isLoading) return;
 
+    if (_userController.text.isEmpty || _passController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              AppStrings.get('fields_req', vm.currentLocale),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          backgroundColor: Theme.of(
+            context,
+          ).extension<AppColors>()!.snackWarning,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
     if (await vm.login(_userController.text, _passController.text)) {
       if (mounted) {
         Navigator.pushReplacementNamed(context, Homeview.routeName);
@@ -135,16 +156,16 @@ class _LoginViewState extends State<LoginView> {
                         child: Container(
                           height: 250,
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: primary.withOpacity(0.1),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
+                          // decoration: BoxDecoration(
+                          // shape: BoxShape.circle,
+                          //boxShadow: [
+                          // BoxShadow(
+                          // color: primary.withOpacity(0.1),
+                          //  blurRadius: 20,
+                          //  spreadRadius: 5,
+                          // ),
+                          //],
+                          // ),
                           child: Image.asset(
                             'assets/images/logo.png',
                             fit: BoxFit.contain,

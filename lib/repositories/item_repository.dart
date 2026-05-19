@@ -113,7 +113,7 @@ class ItemRepository {
               .getTransactionItemsCountTotal(itemId);
 
           if (numTransactionItemsTotal == 0) {
-            _itemDao.deleteItemPhysically(itemId);
+            await _itemDao.deleteItemPhysically(itemId);
           }
           return true;
         } else {
@@ -122,7 +122,7 @@ class ItemRepository {
             itemId,
           );
           if (numTransactionItems == 0) {
-            _itemDao.markForDeletion(itemId);
+            await _itemDao.markForDeletion(itemId);
           }
           return true;
         }
@@ -144,7 +144,7 @@ class ItemRepository {
         itemId,
       );
       if (numTransactionItems == 0) {
-        _itemDao.markForDeletion(itemId);
+        await _itemDao.markForDeletion(itemId);
       }
       throw ServerUnavailableException();
     }
@@ -159,7 +159,7 @@ class ItemRepository {
     String token,
   ) async {
     var item = await _itemDao.getItembyName(name, userId);
-    var itemId = item?.id;
+    var itemId;
     if (item == null) {
       item = Item(
         name: name,
@@ -171,6 +171,9 @@ class ItemRepository {
         currentPrice: 0.0,
       );
       itemId = await _itemDao.createItem(item, userId);
+    } else {
+      if (item.id == null) throw StateError("Item exist but has not locad id");
+      itemId = item.id!;
     }
 
     final transaction = Transaction(

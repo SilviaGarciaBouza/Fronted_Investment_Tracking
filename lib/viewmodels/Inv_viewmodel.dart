@@ -405,13 +405,13 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleTheme() async {
+  Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
     await _settings.saveTheme(_isDarkMode);
     notifyListeners();
   }
 
-  void setLanguage(String code) async {
+  Future<void> setLanguage(String code) async {
     _currentLocale = code;
     await _settings.saveLanguage(code);
     notifyListeners();

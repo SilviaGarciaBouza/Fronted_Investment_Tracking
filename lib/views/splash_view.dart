@@ -20,18 +20,23 @@ class _SplashViewState extends State<SplashView> {
 
   Future<void> _checkSession() async {
     final vm = Provider.of<InvViewModel>(context, listen: false);
-    final hasSession = await vm.loadUserSession();
-    if (!mounted) return;
-    if (hasSession) {
-      Navigator.pushReplacementNamed(context, Homeview.routeName);
-    } else {
-      final wasExpired = vm.sessionExpired;
-      if (wasExpired) vm.clearSessionExpired();
-      Navigator.pushReplacementNamed(
-        context,
-        LoginView.routeName,
-        arguments: wasExpired ? {'sessionExpired': true} : null,
-      );
+    try {
+      final hasSession = await vm.loadUserSession();
+      if (!mounted) return;
+      if (hasSession) {
+        Navigator.pushReplacementNamed(context, Homeview.routeName);
+      } else {
+        final wasExpired = vm.sessionExpired;
+        if (wasExpired) vm.clearSessionExpired();
+        Navigator.pushReplacementNamed(
+          context,
+          LoginView.routeName,
+          arguments: wasExpired ? {'sessionExpired': true} : null,
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, LoginView.routeName);
     }
   }
 

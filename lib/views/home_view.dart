@@ -47,6 +47,7 @@ class _HomeviewState extends State<Homeview> {
       );
       return;
     }
+    setState(() {});
     if (_vm?.connectionLostNotification == true) {
       _vm!.clearConnectionLostNotification();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +108,7 @@ class _HomeviewState extends State<Homeview> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<InvViewModel>(context);
+    final vm = Provider.of<InvViewModel>(context, listen: false);
     final lang = vm.currentLocale;
     final theme = Theme.of(context);
 
@@ -352,13 +353,13 @@ class _HomeviewState extends State<Homeview> {
                 child: ListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: transactions.length,
-                  itemBuilder: (context, index) => _buildTransactionRow(
-                    transactions[index],
-                    vm,
-                    lang,
-                    primary,
-                    text,
-                  ),
+                  itemBuilder: (context, index) {
+                    final tx = transactions[index];
+                    return KeyedSubtree(
+                      key: ValueKey(tx.id),
+                      child: _buildTransactionRow(tx, vm, lang, primary, text),
+                    );
+                  },
                 ),
               ),
             ],
@@ -418,7 +419,7 @@ class _HomeviewState extends State<Homeview> {
       (item) => item.transactions.contains(tx),
     );
     if (parentItem == null) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),

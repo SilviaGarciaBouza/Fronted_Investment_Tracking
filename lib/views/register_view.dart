@@ -15,6 +15,13 @@ class _RegisterViewState extends State<RegisterView> {
   final _userController = TextEditingController();
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
+  @override
+  void dispose() {
+    _userController.dispose();
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
