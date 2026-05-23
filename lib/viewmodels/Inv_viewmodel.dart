@@ -192,11 +192,11 @@ class InvViewModel extends ChangeNotifier {
     try {
       final response = await _authRepo.checkConnection().timeout(
         const Duration(seconds: 2),
-        onTimeout: () => true,
+        onTimeout: () => false,
       );
       isOnline = response;
     } catch (_) {
-      isOnline = true;
+      isOnline = false;
     }
     notifyListeners();
 
