@@ -58,5 +58,5 @@ class AuthRepository {
     }
   }
 
-  Future<User?> loadUser() => _userDao.getUser();
+  Future<User?> loadUser(int userId) => _userDao.getUser(userId);
 }

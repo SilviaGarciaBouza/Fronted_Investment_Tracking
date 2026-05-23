@@ -18,9 +18,14 @@ class UserDao {
   }
 
   /// Recupera la sesión actual para el AuthService.
-  Future<User?> getUser() async {
+  Future<User?> getUser(int userId) async {
     final db = await dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('users', limit: 1);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'users',
+      limit: 1,
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
     if (maps.isNotEmpty) return User.fromJson(maps.first);
     return null;
   }

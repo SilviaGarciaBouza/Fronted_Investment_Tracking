@@ -127,9 +127,12 @@ class InvViewModel extends ChangeNotifier {
   Future<bool> loadUserSession() async {
     final userId = await _sessionRepo.getUserId();
     if (userId == null) return false;
-    currentUser = await _authRepo.loadUser();
+    currentUser = await _authRepo.loadUser(userId);
     // if (currentUser == null) return false;
     // await fetchItems();
+    if (currentUser == null) {
+      await _sessionRepo.clearUserId();
+    }
     return currentUser != null;
   }
 
@@ -188,7 +191,7 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> checkLocalSession() async {
+  /* Future<bool> checkLocalSession() async {
     try {
       final response = await _authRepo.checkConnection().timeout(
         const Duration(seconds: 2),
@@ -200,14 +203,14 @@ class InvViewModel extends ChangeNotifier {
     }
     notifyListeners();
 
-    final savedUser = await _authRepo.loadUser();
+    final savedUser = await _authRepo.loadUser(currentUser?.id);
     if (savedUser != null) {
       currentUser = savedUser;
       await fetchItems();
       return true;
     }
     return false;
-  }
+  }*/
 
   /// Cierra la sesión y limpia las listas.
   Future<void> logout() async {
