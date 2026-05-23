@@ -19,7 +19,7 @@ void main() {
         'token': 'token_ejemplo',
       });
 
-      final user = await UserDao().getUser();
+      final user = await UserDao().getUser(1);
 
       expect(user, isNotNull);
       expect(user?.username, 'user1');

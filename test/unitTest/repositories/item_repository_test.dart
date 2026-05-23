@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:investment_tracking/database/database_helper.dart';
+import 'package:investment_tracking/exceptions/Server_unavailable_exception.dart';
 import 'package:investment_tracking/models/category.dart';
 import 'package:investment_tracking/models/item.dart';
 import 'package:investment_tracking/repositories/item_repository.dart';
@@ -56,24 +57,34 @@ void main() {
       expect(items.any((i) => i.name == 'Silver'), isTrue);
     });
 
-    test('deleteItem without serverId deletes physically and returns true', () async {
-      final db = await DatabaseHelper.instance.database;
-      final localId = await db.insert('items', {
-        'user_id': userId,
-        'name': 'ToDelete',
-        'category_id': catId,
-        'current_price': 0.0,
-        'is_synced': 0,
-        'is_deleted': 0,
-      });
+    test(
+      'deleteItem without serverId deletes physically and returns true',
+      () async {
+        final db = await DatabaseHelper.instance.database;
+        final localId = await db.insert('items', {
+          'user_id': userId,
+          'name': 'ToDelete',
+          'category_id': catId,
+          'current_price': 0.0,
+          'is_synced': 0,
+          'is_deleted': 0,
+        });
 
-      final result = await ItemRepository().deleteItem(localId, null, 'token');
+        final result = await ItemRepository().deleteItem(
+          localId,
+          null,
+          'token',
+        );
 
-      expect(result, isTrue);
-      final rows =
-          await db.query('items', where: 'id = ?', whereArgs: [localId]);
-      expect(rows, isEmpty);
-    });
+        expect(result, isTrue);
+        final rows = await db.query(
+          'items',
+          where: 'id = ?',
+          whereArgs: [localId],
+        );
+        expect(rows, isEmpty);
+      },
+    );
 
     test('saveItem creates item locally when server fails', () async {
       HttpOverrides.global = MockHttpOverrides((_) async {
@@ -87,7 +98,11 @@ void main() {
         currentPrice: 0.0,
       );
 
-      await ItemRepository().saveItem(item, 10.0, 5.0, userId, 'token');
+      try {
+        await ItemRepository().saveItem(item, 10.0, 5.0, userId, 'token');
+      } on ServerUnavailableException {
+        // expected — server unreachable, item saved locally
+      }
 
       final items = await ItemRepository().getLocalItems(userId);
       expect(items.any((i) => i.name == 'OfflineItem'), isTrue);

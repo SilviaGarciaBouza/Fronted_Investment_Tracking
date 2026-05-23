@@ -191,32 +191,17 @@ void main() {
     test(
       'loadUserSession returns true when userId is in SharedPreferences',
       () async {
-        SharedPreferences.setMockInitialValues({'current_user_id': '42'});
-        expect(await InvViewModel().loadUserSession(), isTrue);
-      },
-    );
-
-    test(
-      'checkLocalSession returns true and sets currentUser when user is in SQLite',
-      () async {
         final db = await DatabaseHelper.instance.database;
         await db.insert('users', {
+          'id': 42,
           'username': 'alice',
           'email': 'a@b.com',
           'token': 'tok',
         });
-
-        final vm = InvViewModel();
-        final result = await vm.checkLocalSession();
-
-        expect(result, isTrue);
-        expect(vm.currentUser?.username, 'alice');
+        SharedPreferences.setMockInitialValues({'current_user_id': '42'});
+        expect(await InvViewModel().loadUserSession(), isTrue);
       },
     );
-
-    test('checkLocalSession returns false when no user is in SQLite', () async {
-      expect(await InvViewModel().checkLocalSession(), isFalse);
-    });
   });
 
   group('InvViewModel: authentication', () {

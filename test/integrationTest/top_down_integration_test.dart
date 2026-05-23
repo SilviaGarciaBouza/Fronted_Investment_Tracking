@@ -91,33 +91,39 @@ void main() {
     );
   });
 
-  // ─── Level 3: Full session-restore path ───────────────────────────────────
-  group('Level 3 — Full session restore path (checkLocalSession)', () {
+  // ─── Level 3: Full session-restore path ──────────────────────────────────
+  // checkLocalSession was removed; the restore path is now loadUserSession() +
+  // fetchItems(), which together cover the same ViewModel → Repository → DAO chain.
+  group('Level 3 — Full session restore path (loadUserSession + fetchItems)', () {
     test(
-      'checkLocalSession loads user from SQLite and populates itemList',
+      'loadUserSession loads correct user from SQLite and fetchItems populates itemList',
       () async {
-        // Seed user as a controlled stub — makes _authRepo.loadUser() return a user
         await UserDao().saveUser(
           User(id: 1, username: 'alice', email: 'a@b.com', token: 'tok'),
         );
+        SharedPreferences.setMockInitialValues({'current_user_id': '1'});
 
         final vm = InvViewModel();
-        final result = await vm.checkLocalSession();
+        final hasSession = await vm.loadUserSession();
 
-        expect(result, isTrue);
+        expect(hasSession, isTrue);
         expect(vm.currentUser, isNotNull);
         expect(vm.currentUser!.username, 'alice');
+
+        await vm.fetchItems();
+
         expect(vm.itemList.length, 1);
         expect(vm.isOnline, isTrue);
       },
     );
 
-    test('checkLocalSession returns false when no user is in SQLite', () async {
-      final vm = InvViewModel();
-      final result = await vm.checkLocalSession();
-
-      expect(result, isFalse);
-      expect(vm.currentUser, isNull);
-    });
+    test(
+      'loadUserSession returns false when userId is not in SharedPreferences',
+      () async {
+        final vm = InvViewModel();
+        expect(await vm.loadUserSession(), isFalse);
+        expect(vm.currentUser, isNull);
+      },
+    );
   });
 }

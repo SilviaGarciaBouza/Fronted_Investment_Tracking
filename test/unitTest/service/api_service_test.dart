@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import 'package:investment_tracking/service/api_service.dart';
 import '../../helpers/http_mock.dart';
 
@@ -28,12 +29,14 @@ void main() {
       expect(result['result'], 'ok');
     });
 
-    test('POST returns body on success and null on 401', () async {
+    test('POST throws UnauthorizedException on 401', () async {
       final success = await api.post('/test-post', {'dummy': 'data'});
       expect(success['id'], 123);
 
-      final fail = await api.post('/unauthorized', {});
-      expect(fail, isNull);
+      expect(
+        () => api.post('/unauthorized', {}),
+        throwsA(isA<UnauthorizedException>()),
+      );
     });
 
     test('DELETE returns true on success', () async {
