@@ -191,27 +191,6 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
-  /* Future<bool> checkLocalSession() async {
-    try {
-      final response = await _authRepo.checkConnection().timeout(
-        const Duration(seconds: 2),
-        onTimeout: () => false,
-      );
-      isOnline = response;
-    } catch (_) {
-      isOnline = false;
-    }
-    notifyListeners();
-
-    final savedUser = await _authRepo.loadUser(currentUser?.id);
-    if (savedUser != null) {
-      currentUser = savedUser;
-      await fetchItems();
-      return true;
-    }
-    return false;
-  }*/
-
   /// Cierra la sesión y limpia las listas.
   Future<void> logout() async {
     await _sessionRepo.clearUserId();
