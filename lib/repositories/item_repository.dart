@@ -132,7 +132,7 @@ class ItemRepository {
           itemId,
         );
         if (numTransactionItems == 0) {
-          _itemDao.markForDeletion(itemId);
+          await _itemDao.markForDeletion(itemId);
         }
         return true;
       }
