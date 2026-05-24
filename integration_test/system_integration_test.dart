@@ -18,7 +18,7 @@ void main() {
       await tester.pumpAndSettle();
 
       if (tester.any(find.byType(TextField))) {
-        await tester.enterText(find.byType(TextField).at(0), 'silvia');
+        await tester.enterText(find.byType(TextField).at(0), 's@s.com');
         await tester.enterText(find.byType(TextField).at(1), '1234');
         await tester.tap(find.byType(ElevatedButton).first);
         await tester.pumpAndSettle();

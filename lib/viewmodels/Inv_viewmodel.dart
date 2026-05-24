@@ -451,7 +451,12 @@ class InvViewModel extends ChangeNotifier {
                 context: context,
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 data: <List<String>>[
-                  <String>['Activo', 'Inversión', 'Valor Actual'],
+                  <String>[
+                    AppStrings.get('active', lang),
+                    AppStrings.get('investment', lang),
+                    AppStrings.get('current_value', lang),
+                  ],
+
                   ...itemList.map(
                     (item) => [
                       item.name,

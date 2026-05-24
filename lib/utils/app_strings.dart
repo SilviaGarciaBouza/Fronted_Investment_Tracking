@@ -87,6 +87,7 @@ class AppStrings {
       'current': 'Actual',
       'tooltip_print': 'Imprimir informe PDF',
       'pdf_generated': 'Informe generado correctamente',
+      'current_value': 'Valor Actual',
     },
     'gl': const {
       'login_title': 'XESTOR DE INVERSIÓNS',
@@ -169,6 +170,7 @@ class AppStrings {
       'back_tooltip': 'Atrás',
       'tooltip_print': 'Imprimir informe PDF',
       'pdf_generated': 'Informe xerado correctamente',
+      'current_value': 'Valor Actual',
     },
     'en': const {
       'login_title': 'INVESTMENT MANAGER',
@@ -251,6 +253,7 @@ class AppStrings {
       'back_tooltip': 'Back',
       'tooltip_print': 'Print PDF report',
       'pdf_generated': 'Report generated successfully',
+      'current_value': 'Current Value',
     },
   };
 
