@@ -13,5 +13,6 @@ class Category {
     );
   }
 
+  /// Convierte el objeto a un mapa JSON para enviarlo al servidor o guardarlo.
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
 }

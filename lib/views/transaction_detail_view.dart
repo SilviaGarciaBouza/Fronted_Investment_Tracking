@@ -6,6 +6,7 @@ import '../viewmodels/Inv_viewmodel.dart';
 import '../utils/app_strings.dart';
 import '../theme/app_theme.dart';
 
+/// Vista de detalle de una transacción.
 class TransactionDetailView extends StatelessWidget {
   final Item item;
   const TransactionDetailView({super.key, required this.item});

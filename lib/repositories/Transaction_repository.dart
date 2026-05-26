@@ -4,11 +4,14 @@ import '../dao/transaction_dao.dart';
 import '../models/transaction.dart';
 import '../service/api_service.dart';
 
+/// Repositorio especializado para el control y sincronización de transacciones financieras.
+/// Gestiona las operaciones CRUD locales en SQLite mediante [TransactionDao]
+/// combinándolas con operaciones remotas delegadas en [ApiService].
 class TransactionRepository {
   final ApiService _apiService = ApiService();
   final TransactionDao _transactionDao = TransactionDao();
 
-  /// ELIMINAR: Si falla el servidor, marca con is_deleted = 1
+  /// Elimina una transacción del servidor y local.
   Future<bool> deleteTransaction(
     int localId,
     int? serverId,
@@ -40,7 +43,7 @@ class TransactionRepository {
     }
   }
 
-  /// Obtiene transacciones combinando Local + Server si es posible.
+  /// Recupera el histórico total de transacciones locales mapeadas para la vista principal de la app.
   Future<List<Transaction>> getHomeTransactions(
     int userId,
     String token,
@@ -50,7 +53,11 @@ class TransactionRepository {
     return maps.map((m) => Transaction.fromLocalMap(m)).toList();
   }
 
-  //crear nueva transaccion
+  /// Crea e inserta una nueva transacción financiera.
+  /// 1. Registra la transacción localmente en SQLite asignándole de inmediato la
+  ///    propiedad `is_synced = 0`.
+  /// 2. Intenta enviar el registro al backend usando el [serverItemId] del activo.
+  /// 3. Si la API responde de forma correcta, actualiza localmente el registro con su nuevo ID remoto.
   Future<void> createTransaction(
     int localItemId,
     int? serverItemId,
@@ -67,7 +74,6 @@ class TransactionRepository {
       tx.id = localId;
 
       // 2. Intento de sincronización con MariaDB
-      // Usamos serverItemId y los nombres de campos de la imagen anterior
       final response = await _apiService.post('/transactions', {
         "itemId": serverItemId,
         "stocks": tx.stocks,
@@ -89,7 +95,11 @@ class TransactionRepository {
     }
   }
 
-  /// SINCRONIZACIÓN TOTAL: Sube creados y ejecuta borrados pendientes
+  /// Ejecuta un barrido de sincronización masiva exclusivo para transacciones.
+  /// 1. Busca transacciones con `is_synced = 0`, las sube al backend
+  ///   y guarda el ID remoto devuelto.
+  /// 2. Localiza registros con `is_deleted = 1`, solicita su remoción
+  ///   al servidor por su ID remoto, y si se confirma, los purga del almacenamiento local.
   Future<void> syncAllPendings(String token) async {
     // 1. Procesar ALTAS pendientes (is_synced = 0)
     final List<Map<String, dynamic>> unsyncedRows = await _transactionDao
@@ -117,7 +127,7 @@ class TransactionRepository {
       }
     }
 
-    // 2. Procesar BAJAS pendientes (is_deleted = 1)
+    //  Procesar BAJAS pendientes (is_deleted = 1)
     final List<Map<String, dynamic>> deletionsRows = await _transactionDao
         .getPendingDeletions();
 

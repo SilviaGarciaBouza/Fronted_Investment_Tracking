@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Construye una fila de resumen con un label y un valor
 Widget buildSummaryRow(
   String label,
   String value,

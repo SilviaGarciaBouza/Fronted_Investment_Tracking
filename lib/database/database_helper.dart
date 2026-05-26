@@ -2,19 +2,24 @@ import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
-///Crea si no existe la base de datos
+/// Clase encargada de gestionar el ciclo de vida y la configuración
+/// de la base de datos local SQLite.
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
   DatabaseHelper._init();
 
+  /// Obtiene la instancia activa de la base de datos.
+  /// Si no existe, la inicializa de forma asíncrona.
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('invest_tracking_v4.db');
     return _database!;
   }
 
+  /// Inicializa la base de datos configurando el entorno según la plataforma
+  /// (Móvil o Escritorio) y define la versión y eventos de creación/actualización.
   Future<Database> _initDB(String filePath) async {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
@@ -33,10 +38,14 @@ class DatabaseHelper {
     );
   }
 
+  /// Configura la base de datos activa.
+  /// Activa el soporte para claves foráneas (Foreign Keys) para mantener la integridad.
   Future _onConfigure(Database db) async {
     await db.execute('PRAGMA foreign_keys = ON');
   }
 
+  /// Crea desde cero la estructura de tablas inicial de la base de datos
+  /// e inserta la configuración por defecto.
   Future _createDB(Database db, int version) async {
     await db.execute(
       'CREATE TABLE settings (id INTEGER PRIMARY KEY, key TEXT, value TEXT)',
@@ -89,6 +98,8 @@ class DatabaseHelper {
     ''');
   }
 
+  /// Gestiona la actualización de la base de datos cuando cambia el número de versión.
+  /// Borra las tablas antiguas y las vuelve a crear limpias.
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < newVersion) {
       await db.execute('DROP TABLE IF EXISTS transactions');
@@ -100,6 +111,7 @@ class DatabaseHelper {
     }
   }
 
+  /// Cierra la conexión con la base de datos y libera la instancia guardada.
   Future close() async {
     final db = _database;
     if (db != null) {

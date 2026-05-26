@@ -19,8 +19,9 @@ import '../repositories/auth_repository.dart';
 import '../repositories/category_repository.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-// pra la conexion saber si esta conectado  hicimos flutter pub add connectivity_plus
-/// ViewModel principal que gestiona el estado de la interfaz de inversiones.
+/// ViewModel para el control de la navegación y la comunicación con los
+/// repositorios de datos.
+
 class InvViewModel extends ChangeNotifier {
   final ItemRepository _itemRepo = ItemRepository();
   final AuthRepository _authRepo = AuthRepository();
@@ -45,22 +46,27 @@ class InvViewModel extends ChangeNotifier {
   bool syncSuccessNotification = false;
   bool syncFailureNotification = false;
 
+  /// Limpiar las notificaciones de sesión expirada
   void clearSessionExpired() {
     sessionExpired = false;
   }
 
+  /// Limpiar las notificaciones de perdida de conexión
   void clearConnectionLostNotification() {
     connectionLostNotification = false;
   }
 
+  /// Limpiar las notificaciones de sincronización exitosa
   void clearSyncSuccessNotification() {
     syncSuccessNotification = false;
   }
 
+  /// Limpiar las notificaciones de sincronización fallida
   void clearSyncFailureNotification() {
     syncFailureNotification = false;
   }
 
+  /// MÉTODO PRINCIPAL DE CARGA: Sincroniza y refresca la lista de transacciones.
   Future<T?> _guarded<T>(Future<T> Function() fn) async {
     try {
       return await fn();
@@ -72,15 +78,18 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  /// Constructor
   InvViewModel() {
     _initConnectivityListener();
   }
 
+  /// Muestra la notificación de perdida de conexión
   void _onServerUnavailable() {
     isOnline = false;
     _startRetryTimer();
   }
 
+  /// Inicia el timer de reintentos
   void _startRetryTimer() {
     if (_heartbeatTimer?.isActive == true) return;
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (_) {
@@ -88,6 +97,7 @@ class InvViewModel extends ChangeNotifier {
     });
   }
 
+  /// Comprueba la conexión real
   Future<void> _checkRealConnection() async {
     try {
       final bool hasServer = await _authRepo.checkConnection().timeout(
@@ -117,6 +127,7 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  /// Limpia los timers
   @override
   void dispose() {
     _heartbeatTimer?.cancel();
@@ -124,6 +135,7 @@ class InvViewModel extends ChangeNotifier {
     super.dispose();
   }
 
+  /// Carga la sesión del usuario
   Future<bool> loadUserSession() async {
     final userId = await _sessionRepo.getUserId();
     if (userId == null) return false;
@@ -275,6 +287,7 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  /// Elimina un item
   Future<String> deleteItem(int localId, int? serverId) async {
     if (currentUser == null) return "Error: Sin sesión";
     isLoading = true;
@@ -312,6 +325,7 @@ class InvViewModel extends ChangeNotifier {
     return success;
   }
 
+  /// Obtiene todas las transacciones
   List<Transaction> get allTransactions {
     List<Transaction> txs = [];
     for (var item in itemList) {
@@ -323,6 +337,7 @@ class InvViewModel extends ChangeNotifier {
     return txs;
   }
 
+  /// Añade una transaccion
   Future<void> addTransactionToItem({
     required int itemId,
     required double stocks,
@@ -367,6 +382,7 @@ class InvViewModel extends ChangeNotifier {
     }
   }
 
+  /// Inicializa las preferencias de la app
   Future<void> initSettings() async {
     final savedTheme = await _settings.getTheme();
     final savedLang = await _settings.getLanguage();
@@ -387,20 +403,24 @@ class InvViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cambia el tema de la app
   Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
     await _settings.saveTheme(_isDarkMode);
     notifyListeners();
   }
 
+  /// Cambia el idioma
   Future<void> setLanguage(String code) async {
     _currentLocale = code;
     await _settings.saveLanguage(code);
     notifyListeners();
   }
 
+  /// Inicializa el listener de internet
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
+  /// Inicializa el listener de internet
   void _initConnectivityListener() {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
       results,
@@ -415,6 +435,7 @@ class InvViewModel extends ChangeNotifier {
     });
   }
 
+  /// Genera el reporte general
   Future<pw.Document> generateGeneralReport() async {
     final pdf = pw.Document();
     final lang = _currentLocale;
@@ -474,6 +495,7 @@ class InvViewModel extends ChangeNotifier {
     return pdf;
   }
 
+  /// Sincroniza los datos pendientes
   Future<bool> syncPendingData() async {
     if (currentUser == null) return false;
     bool success = true;
@@ -487,6 +509,7 @@ class InvViewModel extends ChangeNotifier {
     return success;
   }
 
+  /// Calcula los datos de los items
   double get totalCurrentValue =>
       itemList.fold(0, (sum, item) => sum + item.currentValue);
 

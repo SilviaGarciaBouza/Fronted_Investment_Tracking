@@ -4,7 +4,6 @@ import 'package:investment_tracking/exceptions/Unauthorized_exception.dart';
 import 'package:investment_tracking/exceptions/server_http_exception.dart';
 
 /// Servicio central de comunicaciones HTTP.
-///
 /// Gestiona las peticiones al backend de Spring Boot, centralizando el manejo
 /// de cabeceras, el Token JWT y la serialización JSON.
 class ApiService {

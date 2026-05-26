@@ -9,6 +9,7 @@ import 'package:investment_tracking/views/register_view.dart';
 import 'package:investment_tracking/views/login_view.dart';
 import 'package:investment_tracking/views/total_view.dart';
 
+/// Main de la app
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());

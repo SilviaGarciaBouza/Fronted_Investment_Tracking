@@ -106,7 +106,7 @@ class ItemDao {
     return reconstruidos;
   }
 
-  //getItemByname
+  /// Busca un ítem activo por su nombre y ID de usuario, incluyendo sus transacciones.
   Future<Item?> getItembyName(String name, int userId) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -128,14 +128,14 @@ class ItemDao {
     return null;
   }
 
-  //createItem
+  /// Realiza una inserción directa de un ítem en la base de datos local.
   Future<int> createItem(Item item, int userId) async {
     final db = await dbHelper.database;
     return await db.insert('items', item.toLocalMap(userId));
   }
 
-  //_______________________________________________---
   /// Guarda un activo nuevo creado sin conexión.
+  /// Registra el ítem con estado no sincronizado y le vincula su primera transacción.
   Future<void> saveItemOffline(
     Item item,
     double stocks,
@@ -196,6 +196,7 @@ class ItemDao {
     );
   }
 
+  /// Vincula el ID oficial del servidor a un ítem local y lo marca como sincronizado.
   Future<void> markAsSynced(int localId, int serverId) async {
     final db = await dbHelper.database;
     await db.update(
@@ -228,6 +229,7 @@ class ItemDao {
     return toDelete;
   }
 
+  /// Recupera un ítem por su ID local junto con sus transacciones activas.
   Future<Item?> getItemById(int id) async {
     final db = await dbHelper.database;
 

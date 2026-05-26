@@ -10,16 +10,22 @@ import '../dao/item_dao.dart';
 import '../models/item.dart';
 import '../service/api_service.dart';
 
-/// Repositorio unificado para la gestión de activos financieros.
-/// Coordina la persistencia híbrida: decide cuándo usar MariaDB (vía ApiService)
-/// y cuándo usar SQLite (vía ItemDao).
+/// Repositorio unificado para la gestión de activos financieros (Items).
+/// Coordina la estrategia de persistencia híbrida: decide cuándo consumir y enviar
+/// datos a la base de datos remota (MariaDB mediante [ApiService]) y cuándo
+/// almacenar o consultar en la base de datos local ([ItemDao] con SQLite).
 class ItemRepository {
   final ApiService _apiService = ApiService();
   final ItemDao _itemDao = ItemDao();
   final CategoryDao _categoryDao = CategoryDao();
   final TransactionDao _transactionDao = TransactionDao();
 
-  ///Obtiene los datos del servidor, los guarda en local y devuelve los datos de local
+  /// Sincroniza y obtiene los activos de un usuario desde el servidor.
+  /// Intenta descargar los datos más recientes mediante la API, los vuelca en la
+  /// base de datos local para asegurar la disponibilidad offline, y finalmente
+  /// retorna los registros actualizados desde SQLite.
+  /// * Lanza [UnauthorizedException] si las credenciales o el token no son válidos.
+  /// * Lanza [ServerUnavailableException] si hay problemas de red o el servidor no responde.
   Future<List<Item>> fetchUserItems(int userId, String token) async {
     try {
       final data = await _apiService.get('/items/user/$userId', token: token);
@@ -36,10 +42,18 @@ class ItemRepository {
     }
   }
 
+  /// Recupera de forma directa los activos almacenados en la base de datos local.
+  /// Útil para cargas rápidas de la interfaz o cuando el dispositivo se encuentra sin red.
   Future<List<Item>> getLocalItems(int userId) async {
     return await _itemDao.getItems(userId);
   }
 
+  /// Guarda un nuevo activo financiero en el sistema de manera síncrona/asíncrona.
+  /// Intenta crear el activo en el servidor. Si tiene éxito, guarda la respuesta
+  /// (con su ID remoto asignado) en SQLite. Si el servidor no está disponible,
+  /// lo registra en local con una bandera de pendiente de sincronización.
+  /// * Lanza [UnauthorizedException] si el token expiró o es inválido.
+  /// * Lanza [ServerUnavailableException] si se guarda en modo desconectado (Offline).
   Future<void> saveItem(
     Item item,
     double stocks,
@@ -68,6 +82,11 @@ class ItemRepository {
     }
   }
 
+  /// Elimina un activo financiero del sistema.
+  /// Si el activo cuenta con un identificador del servidor ([serverId]), intenta
+  /// borrarlo de la base de datos remota antes de removerlo de SQLite.
+  /// Si el servidor está inaccesible, realiza un borrado lógico marcándolo para
+  /// eliminación posterior (`markForDeletion`).
   Future<bool> deleteItem(int localId, int? serverId, String token) async {
     try {
       if (serverId != null) {
@@ -92,6 +111,10 @@ class ItemRepository {
     }
   }
 
+  /// Elimina una transacción específica y evalúa si se debe limpiar su activo asociado.
+  /// Realiza la baja en el servidor (si [serverId] existe) o de forma local. Si al eliminar
+  /// la transacción el activo se queda sin ningún movimiento asociado, el método procede
+  /// a eliminar físicamente o marcar para borrado el activo padre ([itemId]).
   Future<bool> deleteTransaction(
     int localId,
     int? serverId,
@@ -150,6 +173,10 @@ class ItemRepository {
     }
   }
 
+  /// Registra una nueva transacción para un activo, creándolo localmente si no existe.
+  /// Busca el activo por nombre. Si no lo encuentra, inicializa uno nuevo en SQLite
+  /// marcado como no sincronizado (`isSynced: false`). Posteriormente guarda la transacción
+  /// e inicia un proceso automático de sincronización en segundo plano ([syncPendingData]).
   Future<void> saveTransaction(
     String name,
     double stocks,
@@ -188,6 +215,7 @@ class ItemRepository {
     await syncPendingData(userId, token);
   }
 
+  /// Sincroniza de forma masiva los datos pendientes de SQLite hacia el servidor central.
   Future<void> syncPendingData(int userId, String token) async {
     bool serverError = false;
 

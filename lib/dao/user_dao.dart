@@ -17,7 +17,7 @@ class UserDao {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  /// Recupera la sesión actual para el AuthService.
+  /// Recupera los datos de sesión de un usuario por su ID local.
   Future<User?> getUser(int userId) async {
     final db = await dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(

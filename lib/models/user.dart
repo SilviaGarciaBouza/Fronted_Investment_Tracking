@@ -1,5 +1,4 @@
 /// Representa al usuario autenticado.
-///
 /// Se utiliza en el [AuthService] para gestionar el token JWT y
 /// en el [UserRepository] para persistir el perfil básico localmente.
 class User {
@@ -16,8 +15,8 @@ class User {
   });
 
   /// Crea un usuario desde la respuesta DTO del backend.
+  /// Extrae los campos dinámicamente si vienen anidados o en la raíz.
   factory User.fromJson(Map<String, dynamic> json) {
-    // Maneja tanto si el JSON viene con el nodo 'user' o directo
     final userData = json['user'] ?? json;
     return User(
       id: userData['id'] ?? 0,

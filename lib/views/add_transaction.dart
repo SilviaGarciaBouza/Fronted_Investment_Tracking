@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:investment_tracking/viewmodels/Inv_viewmodel.dart';
 import 'package:investment_tracking/utils/app_strings.dart';
 
+/// Vista para la creación de transacciones
 class Additem extends StatefulWidget {
   const Additem({super.key});
   static const routeName = '/additem';

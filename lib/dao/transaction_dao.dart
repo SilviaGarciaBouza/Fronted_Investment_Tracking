@@ -6,8 +6,7 @@ import '../models/transaction.dart';
 class TransactionDao {
   final dbHelper = DatabaseHelper.instance;
 
-  /// Para borrar desde la papelera del Home
-
+  /// Marca una transacción como eliminada lógicamente de forma local.
   Future<void> markForDeletion(int localId) async {
     final db = await dbHelper.database;
     await db.update(
@@ -43,14 +42,13 @@ class TransactionDao {
     );
     return Sqflite.firstIntValue(result) ?? 0;
   }
-  //saveTransaction al item le añadimpos esta tranasaccion
 
+  /// Guarda una nueva transacción vinculándola localmente a un ítem.
   Future<int> saveTransaction(Transaction transaction, int itemId) async {
     final db = await dbHelper.database;
     return await db.insert('transactions', transaction.toLocalMap(itemId));
   }
 
-  //____________________________-
   /// Sincroniza las transacciones de un activo provenientes del servidor.
   /// Borra las transacciones locales que ya estaban marcadas como sincronizadas
   /// para evitar duplicados y guarda la versión "oficial" del backend.
@@ -85,7 +83,8 @@ class TransactionDao {
     await batch.commit(noResult: true);
   }
 
-  /// Recupera las transacciones de un item que aún no se han subido a MariaDB.
+  /// Obtiene los transacciones creados offline pendientes de subir al servidor.
+
   Future<List<Map<String, dynamic>>> getUnsyncedTransactions(
     int localItemId,
   ) async {
@@ -103,7 +102,6 @@ class TransactionDao {
     final List<Map<String, dynamic>> maps = await db.query(
       'transactions',
       where: 'is_synced = 0 AND is_deleted = 0',
-      //whereArgs: [localItemId],
     );
     List<Transaction> unsynced = [];
     for (var map in maps) {
@@ -112,13 +110,12 @@ class TransactionDao {
     return unsynced;
   }
 
-  /// Obtiene todo para el Home
+  /// Obtiene de forma combinada las transacciones, ítems y categorías para la pantalla principal.
   Future<List<Map<String, dynamic>>> getAllTransactionsForHome(
     int userId,
   ) async {
     final db = await dbHelper.database;
 
-    // Aquí es donde unimos Transaction + Item + Category
     return await db.rawQuery(
       '''
       SELECT 
@@ -158,7 +155,7 @@ class TransactionDao {
     return toDelete;
   }
 
-  /// Obtiene ABSOLUTAMENTE TODAS las transacciones pendientes de subir (is_synced = 0)
+  /// Obtiene todas las transacciones pendientes de subir (is_synced = 0)
   /// de cualquier activo.
   Future<List<Map<String, dynamic>>> getAllUnsyncedTransactions() async {
     final db = await dbHelper.database;
@@ -172,7 +169,7 @@ class TransactionDao {
   ''');
   }
 
-  /// Actualiza una fila local con el ID que nos da el servidor tras el éxito
+  /// Actualiza una fila local con el id que nos da el servidor tras el éxito
   Future<void> markAsSynced(int localId, int serverId) async {
     final db = await dbHelper.database;
     await db.update(

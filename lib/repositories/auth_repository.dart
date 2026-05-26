@@ -58,5 +58,6 @@ class AuthRepository {
     }
   }
 
+  /// Recupera los datos del perfil de un usuario guardado localmente mediante su ID.
   Future<User?> loadUser(int userId) => _userDao.getUser(userId);
 }

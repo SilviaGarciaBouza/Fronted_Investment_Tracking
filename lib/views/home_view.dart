@@ -10,6 +10,7 @@ import 'package:investment_tracking/views/login_view.dart';
 import 'package:investment_tracking/theme/app_theme.dart';
 import '../models/transaction.dart';
 
+/// Vista principal de la aplicación
 class Homeview extends StatefulWidget {
   const Homeview({super.key});
   static const routeName = '/home';

@@ -3,9 +3,10 @@ import 'transaction.dart';
 
 /// Representa un activo (ej: Apple, Bitcoin) con su historial y rentabilidad.
 class Item {
-  // Autoincrement en SQLite
+  /// ID autoincremental en la base de datos local SQLite.
   final int? id;
-  // ID en MariaDB
+
+  /// ID único guardado en la base de datos remota MariaDB.
   final int? serverId;
   final String name;
   final Category category;
@@ -27,11 +28,19 @@ class Item {
     this.isDeleted = false,
   });
 
-  ///Lógica de Negocio para el ViewModel
+  /// Obtiene la cantidad total de acciones o tokens acumulados mediante las transacciones.
   double get totalStocks => transactions.fold(0, (sum, tx) => sum + tx.stocks);
+
+  /// Obtiene el total de dinero invertido en euros en este activo.
   double get totalInvEur => transactions.fold(0, (sum, tx) => sum + tx.invEur);
+
+  /// Calcula el valor actual de mercado de la posición total.
   double get currentValue => totalStocks * currentPrice;
+
+  /// Calcula la ganancia o pérdida neta acumulada en euros.
   double get profitEur => currentValue - totalInvEur;
+
+  /// Calcula el porcentaje de rendimiento actual respecto al dinero invertido.
   double get profitPercent =>
       totalInvEur == 0 ? 0 : (profitEur / totalInvEur) * 100;
 
@@ -52,7 +61,7 @@ class Item {
     isSynced: true,
   );
 
-  /// Mapea datos desde SQLite.
+  /// Mapea datos desde un registro de SQLite junto con su lista de transacciones.
   factory Item.fromLocalMap(
     Map<String, dynamic> map,
     List<Transaction> txList,
@@ -70,7 +79,7 @@ class Item {
     transactions: txList,
   );
 
-  /// Exporta a mapa para SQLite.
+  /// Exporta los campos del activo a un mapa compatible con SQLite de forma local.
   Map<String, dynamic> toLocalMap(int userId) => {
     'id': id,
     'server_id': serverId,
@@ -82,5 +91,6 @@ class Item {
     'is_deleted': isDeleted ? 1 : 0,
   };
 
+  /// Devuelve el nombre legible de la categoría asignada.
   String get categoryName => category.name;
 }

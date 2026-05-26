@@ -4,6 +4,7 @@ import 'package:investment_tracking/views/home_view.dart';
 import 'package:investment_tracking/views/login_view.dart';
 import 'package:provider/provider.dart';
 
+/// Pantalla de carga.
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
 

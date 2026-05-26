@@ -4,6 +4,7 @@ import '../viewmodels/Inv_viewmodel.dart';
 import '../utils/app_strings.dart';
 import '../theme/app_theme.dart';
 
+/// Vista para el registro de usuarios
 class RegisterView extends StatefulWidget {
   static const routeName = '/register';
   const RegisterView({super.key});

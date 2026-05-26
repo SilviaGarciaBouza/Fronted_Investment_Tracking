@@ -6,6 +6,7 @@ import '../viewmodels/Inv_viewmodel.dart';
 import '../utils/app_strings.dart';
 import '../theme/app_theme.dart';
 
+/// Vista de resumen de transacciones
 class TotalView extends StatelessWidget {
   const TotalView({super.key});
   static const routeName = '/totalview';

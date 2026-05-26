@@ -1,3 +1,4 @@
+/// Clase para manejar los textos de la app
 class AppStrings {
   static final Map<String, Map<String, String>> _values = {
     'es': {
@@ -257,6 +258,7 @@ class AppStrings {
     },
   };
 
+  /// Devuelve el string correspondiente a la clave y el idioma especificado
   static String get(String key, String lang) {
     return _values[lang]?[key] ?? _values['es']![key]!;
   }

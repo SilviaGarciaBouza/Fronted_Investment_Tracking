@@ -1,18 +1,20 @@
 /// Representa un movimiento de compra dentro de un [Item].
-///
 /// Gestiona la sincronización individual para permitir ráfagas de subida
 /// cuando se recupera la conexión.
 class Transaction {
-  // ID local en SQLite (autoincrement)
+  /// ID local único autoincremental de SQLite.
   int? id;
+
+  /// ID asignado por el servidor en la base de datos MariaDB.
   final int? serverId;
-  // ID  en MariadB
   final double stocks;
   final double purchasePrice;
   final double invEur;
   final DateTime purchaseDate;
   final bool isSynced;
   final bool isDeleted;
+
+  /// ID del activo local al que pertenece esta transacción.
   final int? itemId;
 
   Transaction({
@@ -27,7 +29,7 @@ class Transaction {
     this.itemId,
   });
 
-  /// Factory para DTOs del backend.
+  /// Factory para mapear transacciones desde los DTOs del backend de forma oficial.
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
     serverId: json['id'] != null ? int.parse(json['id'].toString()) : null,
     stocks: (json['stocks'] ?? json['amount'] ?? 0.0).toDouble(),
@@ -55,7 +57,7 @@ class Transaction {
     isDeleted: map['is_deleted'] == 1,
   );
 
-  /// Prepara los datos para insertar en SQLite local.
+  /// Prepara los datos para insertar o actualizar en la base de datos local SQLite.
   Map<String, dynamic> toLocalMap(int localItemId) => {
     'id': id,
     'server_id': serverId,

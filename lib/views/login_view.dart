@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import 'home_view.dart';
 import 'register_view.dart';
 
+/// Pantalla de inicio de sesión
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
   static const routeName = '/login';
