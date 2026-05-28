@@ -58,9 +58,6 @@ Cambiar este valor si el backend corre en una dirección o puerto diferente. Par
 ## Ejecutar la aplicación
 
 ```bash
-# Web
-flutter run -d chrome
-
 # Android (emulador o dispositivo físico)
 flutter run -d android
 
@@ -69,7 +66,12 @@ flutter run -d ios
 
 # Linux (escritorio)
 flutter run -d linux
+
+# macOS (escritorio, requiere Xcode)
+flutter run -d macos
 ```
+
+> **Nota:** la plataforma web no está soportada porque `sqflite` no tiene backend web. La app usa SQLite para el modo offline y no tiene un sustituto en-navegador.
 
 Para listar los dispositivos disponibles en el sistema:
 
@@ -80,7 +82,6 @@ flutter devices
 ### Builds de producción
 
 ```bash
-flutter build web
 flutter build apk
 flutter build ipa
 ```
@@ -93,13 +94,13 @@ La suite completa de tests no necesita dispositivo ni backend: todo el acceso a 
 
 ```bash
 # Tests unitarios (un fichero por clase)
-flutter test unitTest/
+flutter test test/unitTest/
 
 # Tests de integración (composición de capas)
-flutter test integrationTest/
+flutter test test/integrationTest/
 
 # Un único fichero
-flutter test unitTest/models/item_test.dart
+flutter test test/unitTest/models/item_test.dart
 ```
 
 Los tests E2E del sistema requieren un dispositivo conectado y el backend corriendo:
@@ -114,42 +115,50 @@ flutter test -d linux integration_test/system_integration_test.dart
 
 ```
 lib/
-├── main.dart                    # Punto de entrada, rutas y provider raíz
-├── models/                      # Entidades de dominio
-│   ├── item.dart                # Activo financiero con sus transacciones
-│   ├── transaction.dart         # Movimiento de compra individual
-│   ├── user.dart                # Usuario autenticado con token JWT
-│   └── category.dart            # Clasificación de activos
+├── main.dart                        # Punto de entrada, rutas y provider raíz
+├── models/                          # Entidades de dominio
+│   ├── item.dart                    # Activo financiero con sus transacciones
+│   ├── transaction.dart             # Movimiento de compra individual
+│   ├── user.dart                    # Usuario autenticado con token JWT
+│   └── category.dart                # Clasificación de activos
 ├── viewmodels/
-│   └── InvViewModel.dart        # ViewModel único (ChangeNotifier) con todo el estado
-├── repositories/                # Acceso a datos: API primero, SQLite como fallback
+│   └── Inv_viewmodel.dart           # ViewModel único (ChangeNotifier) con todo el estado
+├── repositories/                    # Acceso a datos: API primero, SQLite como fallback
 │   ├── item_repository.dart
-│   ├── TransactionRepository.dart
+│   ├── Transaction_repository.dart
 │   ├── auth_repository.dart
 │   ├── category_repository.dart
 │   └── session_repository.dart
-├── dao/                         # CRUD directo sobre SQLite, un DAO por tabla
+├── dao/                             # CRUD directo sobre SQLite, un DAO por tabla
 │   ├── item_dao.dart
 │   ├── transaction_dao.dart
 │   ├── user_dao.dart
-│   └── category_dao.dart
+│   └── caegory_dao.dart
 ├── database/
-│   └── database_helper.dart     # Singleton SQLite, schema v20
+│   └── database_helper.dart         # Singleton SQLite, schema v20
+├── exceptions/                      # Excepciones de dominio para errores HTTP y de red
+│   ├── server_http_exception.dart
+│   ├── Server_unavailable_exception.dart
+│   └── Unauthorized_exception.dart
 ├── service/
-│   ├── api_service.dart         # Cliente HTTP con timeout de 15 s y cabeceras JWT
-│   ├── storage_service.dart     # SharedPreferences
-│   └── SettingsService.dart     # Persistencia de tema e idioma
-├── views/                       # Pantallas de la aplicación
-│   ├── LoginView.dart
-│   ├── RegisterView.dart
-│   ├── HomeView.dart
-│   ├── AddTransaction.dart
-│   ├── TransactionDetailView.dart
+│   ├── api_service.dart             # Cliente HTTP con timeout de 30 s y cabeceras JWT
+│   ├── storage_service.dart         # SharedPreferences
+│   └── SettingsService.dart         # Persistencia de tema e idioma
+├── theme/
+│   └── app_theme.dart               # Tema claro/oscuro de la aplicación
+├── views/                           # Pantallas de la aplicación
+│   ├── login_view.dart
+│   ├── register_view.dart
+│   ├── home_view.dart
+│   ├── add_transaction.dart
+│   ├── transaction_detail_view.dart
 │   ├── total_view.dart
 │   └── splash_view.dart
 ├── utils/
-│   └── app_strings.dart         # Internacionalización (es / gl / en)
-└── widgets/                     # Componentes reutilizables
+│   ├── app_strings.dart             # Internacionalización (es / gl / en)
+│   └── network_error_utils.dart     # Helpers para clasificar errores de red
+└── widgets/                         # Componentes reutilizables
+    └── build_summary_row.dart
 ```
 
 ---
@@ -168,15 +177,21 @@ Esta separación hace que cambiar la fuente de datos (por ejemplo, sustituir SQL
 
 ### Modo offline-first con sincronización automática
 
-Todas las escrituras tocan SQLite primero. Los registros no sincronizados se marcan con `isSynced = 0` o `isDeleted = 1` y se suben al servidor en cuanto se recupera la conexión. El `InvViewModel` ejecuta `syncPendingData()` automáticamente al reconectarse, garantizando que ninguna operación offline se pierda.
+Todas las escrituras tocan SQLite primero. Los registros no sincronizados se marcan con `is_synced = 0` o `is_deleted = 1` y se suben al servidor en cuanto se recupera la conexión. El `InvViewModel` ejecuta `syncPendingData()` automáticamente al reconectarse, garantizando que ninguna operación offline se pierda.
 
 ### Detección de conectividad en dos niveles
 
-La app combina `connectivity_plus` (eventos de red del sistema operativo) con una verificación activa contra el servidor cada 10 segundos. Esto evita el problema habitual de confundir "hay WiFi" con "el backend está accesible": es posible tener red pero que el servidor esté caído, y la app lo detecta correctamente.
+La app combina `connectivity_plus` (paquete Flutter que escucha los eventos de red del sistema operativo: conexión/desconexión de WiFi, datos móviles, etc.) con una verificación activa contra el servidor cada 20 segundos. Esto evita el problema habitual de confundir "hay WiFi" con "el backend está accesible": es posible tener red pero que el servidor esté caído, y la app lo detecta correctamente.
+
+Cuando `connectivity_plus` detecta reconexión, el ViewModel espera 2 segundos antes de confirmar la disponibilidad del backend y lanzar la sincronización pendiente, evitando falsos positivos en conexiones inestables.
 
 ### P&L calculado como getters derivados
 
 Las métricas financieras (`totalCurrentValue`, `totalInvestment`, `totalPnL`, `totalPnLPercent`) son getters calculados en tiempo real a partir del estado, sin persistirlos. Cualquier cambio en precios o transacciones se refleja de inmediato en toda la UI gracias al sistema reactivo de `ChangeNotifier`.
+
+### Exportación de informes en PDF
+
+El `InvViewModel` incluye un método `generatePdfReport` que genera un informe A4 de la cartera (activos, transacciones y métricas P&L) usando los paquetes `pdf` y `printing`. El informe se construye en memoria y se ofrece al usuario para guardar o compartir directamente desde la app, sin pasar por el servidor.
 
 ### Internacionalización sin paquetes externos
 
@@ -195,4 +210,4 @@ Los tests de integración usan una base de datos SQLite separada para evitar col
 
 ### Soporte multiplataforma con un único código base
 
-La misma app corre en Android, iOS, y escritorio. La diferencia principal está en la inicialización de SQLite: en escritorio se usa `sqflite_common_ffi` y en móvil/web el `sqflite` estándar, con la detección de plataforma encapsulada en `database_helper.dart`.
+La misma app corre en Android, iOS, Linux y macOS. La diferencia principal está en la inicialización de SQLite: en escritorio (Linux, macOS, Windows) se usa `sqflite_common_ffi` y en móvil el `sqflite` estándar, con la detección de plataforma encapsulada en `database_helper.dart`. La plataforma web no está soportada porque `sqflite` no tiene backend web.

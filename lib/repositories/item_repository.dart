@@ -186,7 +186,7 @@ class ItemRepository {
     String token,
   ) async {
     var item = await _itemDao.getItembyName(name, userId);
-    var itemId;
+    int itemId;
     if (item == null) {
       item = Item(
         name: name,

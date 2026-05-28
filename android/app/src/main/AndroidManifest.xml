@@ -48,3 +48,4 @@
         </intent>
     </queries>
 </manifest>
+<!--~/Android/Sdk/emulator/emulator -avd Pixel_7_API_35 -gpu -->
